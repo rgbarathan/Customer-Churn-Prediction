@@ -253,11 +253,314 @@ def generate_recommendations(profile, risk_factors, churn_prob):
     unique_recs.sort(key=lambda x: x['priority'])
     return unique_recs
 
+def calculate_winback_probability(profile, churn_prob):
+    """Calculate probability of successfully retaining the customer."""
+    base_score = 1.0 - churn_prob  # Start with inverse of churn probability
+    
+    # Adjust based on tenure (longer tenure = easier to retain)
+    if profile['tenure_months'] > 24:
+        tenure_factor = 1.3  # 30% boost for loyal customers
+    elif profile['tenure_months'] > 12:
+        tenure_factor = 1.15
+    elif profile['tenure_months'] > 6:
+        tenure_factor = 1.0
+    else:
+        tenure_factor = 0.85  # Harder to retain new customers
+    
+    # Adjust based on contract type (committed customers easier to retain)
+    if profile['contract_type'] == 'Two year':
+        contract_factor = 1.25
+    elif profile['contract_type'] == 'One year':
+        contract_factor = 1.1
+    else:
+        contract_factor = 0.9  # Month-to-month harder to retain
+    
+    # Adjust based on engagement (more services = easier to retain)
+    if profile['service_count'] >= 5:
+        engagement_factor = 1.2
+    elif profile['service_count'] >= 3:
+        engagement_factor = 1.1
+    else:
+        engagement_factor = 0.95
+    
+    # Adjust based on payment reliability (high charges with good tenure = loyal)
+    payment_reliability = profile['total_charges'] / (profile['tenure_months'] * profile['monthly_charges'] + 1e-6)
+    if payment_reliability > 0.95:
+        payment_factor = 1.15  # Consistent payer
+    elif payment_reliability > 0.8:
+        payment_factor = 1.0
+    else:
+        payment_factor = 0.9  # Payment issues
+    
+    # Calculate final win-back probability
+    winback_prob = min(0.95, base_score * tenure_factor * contract_factor * engagement_factor * payment_factor)
+    
+    # Determine strategy
+    if winback_prob > 0.7:
+        strategy = "AGGRESSIVE_SAVE"
+        strategy_desc = "High retention likelihood - offer premium incentives"
+    elif winback_prob > 0.4:
+        strategy = "NEGOTIATION"
+        strategy_desc = "Moderate retention likelihood - negotiate and escalate if needed"
+    else:
+        strategy = "BEST_EFFORT"
+        strategy_desc = "Low retention likelihood - document for future win-back campaign"
+    
+    return {
+        'probability': winback_prob,
+        'strategy': strategy,
+        'description': strategy_desc
+    }
+
+def generate_objection_handlers(profile, churn_prob):
+    """Generate objection handling scripts for common customer concerns."""
+    handlers = []
+    
+    # Price objection
+    if profile['monthly_charges'] > 80:
+        max_discount = min(40, int(profile['monthly_charges'] * 0.3))
+        handlers.append({
+            'objection': '💰 "Too expensive / Can\'t afford it"',
+            'response': f"I completely understand budget concerns. I can reduce your bill by ${max_discount}/month right now.",
+            'action': f"Apply ${max_discount}/month discount immediately",
+            'fallback': f"Alternative: 50% off for 3 months (saves ${int(profile['monthly_charges']*0.5*3)})",
+            'escalation': 'If declined: Transfer to retention specialist with authority for higher discounts'
+        })
+    
+    # Competitor objection
+    handlers.append({
+        'objection': '🏢 "Competitor has better deal"',
+        'response': "I\'d love to match or beat that offer. What are they offering specifically?",
+        'action': "Price match + $100 gift card + premium channel upgrade",
+        'fallback': "Alternative: Match their price + additional service add-ons",
+        'escalation': 'If competitor offer > our best: Escalate to manager for approval'
+    })
+    
+    # Service quality objection
+    if profile['internet_service'] != 'No':
+        handlers.append({
+            'objection': '📶 "Service quality issues / Slow internet"',
+            'response': "I sincerely apologize for that experience. Let\'s fix this immediately.",
+            'action': "Schedule priority tech visit (within 24hrs) + 1 month bill credit",
+            'fallback': "Alternative: Upgrade to fiber (if available) at current price",
+            'escalation': 'URGENT: Create service ticket + notify technical operations'
+        })
+    
+    # Contract flexibility objection
+    if profile['contract_type'] != 'Month-to-month':
+        handlers.append({
+            'objection': '📋 "Locked into contract / Want flexibility"',
+            'response': "I understand wanting flexibility. How about we convert you to month-to-month with a loyalty discount?",
+            'action': "Convert to month-to-month + maintain contract discount for 6 months",
+            'fallback': "Alternative: Reduce contract to 1-year with same discount",
+            'escalation': 'If insistent: Waive early termination fee + retention offer'
+        })
+    
+    # Moving/Relocation objection
+    handlers.append({
+        'objection': '🏠 "Moving / Relocating"',
+        'response': "We can transfer your service to your new address with all current benefits.",
+        'action': "Free installation at new address + 2 months at 50% off",
+        'fallback': "Alternative: Suspend service for up to 3 months (if temporary move)",
+        'escalation': 'If outside service area: Offer early termination fee waiver'
+    })
+    
+    return handlers
+
+def generate_conversation_flow(profile, churn_prob, recommendations):
+    """Generate step-by-step conversation playbook for agent."""
+    ltv = profile['monthly_charges'] * 36
+    
+    flow = {
+        'step1': {
+            'phase': 'BUILD RAPPORT',
+            'timing': '0-2 minutes',
+            'objective': 'Establish connection and gather context',
+            'script': [
+                f"Thank you for being a Comcast customer for {profile['tenure_months']} months, we truly value your business.",
+                "I'm calling today because you're one of our valued customers and I want to make sure you're getting the best experience.",
+                f"How has your {'internet' if profile['internet_service'] != 'No' else 'phone'} service been working for you lately?"
+            ],
+            'listen_for': ['Satisfaction level', 'Any complaints', 'Specific needs'],
+            'notes': '🎯 Goal: Get customer talking, identify pain points'
+        },
+        'step2': {
+            'phase': 'IDENTIFY PAIN POINTS',
+            'timing': '2-5 minutes',
+            'objective': 'Uncover reasons for potential churn',
+            'script': [
+                f"I see you're currently on our {profile['contract_type']} plan at ${profile['monthly_charges']:.2f}/month.",
+                "What's most important to you: saving money, getting more services, or improving reliability?",
+                "Have you looked at other providers or considered making any changes?"
+            ],
+            'listen_for': ['Price concerns', 'Service issues', 'Competitor mentions', 'Life changes'],
+            'notes': '⚠️ CRITICAL: Listen actively and take notes on objections'
+        },
+        'step3': {
+            'phase': 'PRESENT PRIMARY OFFER',
+            'timing': '5-8 minutes',
+            'objective': 'Present most relevant retention offer',
+            'primary_offer': recommendations[0] if recommendations else None,
+            'script': [
+                "Based on what you've shared, I have an exclusive offer designed specifically for you.",
+                f"[Present: {recommendations[0]['description'] if recommendations else 'best available offer'}]",
+                "This offer is available for the next 48 hours and can save you significant money.",
+                "Would you like me to apply this to your account right now?"
+            ],
+            'if_yes': 'Proceed to Step 4 (Closing)',
+            'if_no': 'Present Alternative Offer A',
+            'alternative_a': recommendations[1] if len(recommendations) > 1 else None,
+            'alternative_b': recommendations[2] if len(recommendations) > 2 else None,
+            'notes': '💡 If customer hesitates: Use objection handlers'
+        },
+        'step4': {
+            'phase': 'CLOSING',
+            'timing': '8-10 minutes',
+            'objective': 'Secure commitment or schedule follow-up',
+            'script': [
+                "Great! Let me summarize what we've agreed on today:",
+                f"[Recap: Discount, services, contract terms]",
+                "I'll apply this immediately - you'll see it on your next bill.",
+                "Is there anything else I can help you with today?"
+            ],
+            'if_accepted': 'Apply offer + send confirmation email + schedule follow-up call in 30 days',
+            'if_rejected': 'Schedule callback in 24-48 hours + escalate to retention specialist',
+            'follow_up': 'Send SMS confirmation with offer details within 1 hour',
+            'notes': '✅ Document outcome in CRM + set reminder for follow-up'
+        }
+    }
+    
+    return flow
+
+def determine_next_contact_channel(profile, churn_prob):
+    """Determine best channel for follow-up contact."""
+    # High churn risk = immediate phone call
+    if churn_prob > 0.7:
+        return {
+            'primary': '📞 Phone Call',
+            'timing': 'Within 24 hours',
+            'reason': 'Critical risk requires immediate personal contact',
+            'backup': 'SMS if no answer (max 3 attempts)',
+            'message': 'Urgent: Special retention offer expires soon. Call us at 1-800-COMCAST'
+        }
+    
+    # Senior citizens often prefer phone
+    elif profile['senior_citizen']:
+        return {
+            'primary': '📞 Phone Call',
+            'timing': 'Within 48 hours (prefer morning 9-11am)',
+            'reason': 'Senior customer - phone preferred for clear communication',
+            'backup': 'Physical mail with large print offer details',
+            'message': 'Important information about your Comcast account'
+        }
+    
+    # High-value customers get personalized contact
+    elif profile['monthly_charges'] > 100:
+        return {
+            'primary': '📞 Phone Call',
+            'timing': 'Within 48 hours',
+            'reason': 'High-value customer deserves personal attention',
+            'backup': '📧 Email with video message from account manager',
+            'message': 'Exclusive VIP retention offer - Limited time'
+        }
+    
+    # Tech-savvy customers (multiple services, young)
+    elif profile['service_count'] >= 4 and not profile['senior_citizen']:
+        return {
+            'primary': '📱 SMS/Text',
+            'timing': 'Within 2 hours',
+            'reason': 'Tech-savvy customer prefers quick digital contact',
+            'backup': '📧 Email with clickable offer link',
+            'message': '🎁 Special offer just for you! Click here to save $XX/month [LINK]'
+        }
+    
+    # Default to email
+    else:
+        return {
+            'primary': '📧 Email',
+            'timing': 'Within 24 hours',
+            'reason': 'Standard follow-up with detailed offer information',
+            'backup': '📞 Phone call if no response in 48 hours',
+            'message': 'Your Personalized Comcast Retention Offer - Don\'t Miss Out!'
+        }
+
+def generate_sentiment_guidance(profile, churn_prob):
+    """Provide real-time sentiment monitoring guidance for agent."""
+    guidance = {
+        'watch_for': [],
+        'if_frustrated': {},
+        'if_confused': {},
+        'if_interested': {},
+        'if_angry': {}
+    }
+    
+    # Keywords to monitor
+    guidance['watch_for'] = [
+        '❌ Negative: "cancel", "disconnect", "switching", "expensive", "poor service", "fed up"',
+        '⚠️ Warning: "thinking about", "considering", "looking at", "competitor", "better deal"',
+        '✅ Positive: "interested", "sounds good", "maybe", "tell me more", "what else"',
+        '💰 Price-focused: "cost", "price", "afford", "budget", "cheaper", "discount"'
+    ]
+    
+    # If customer sounds frustrated
+    guidance['if_frustrated'] = {
+        'indicators': 'Raised voice, sighing, repetitive complaints, interrupting',
+        'immediate_action': '🚨 STOP SELLING - Switch to empathy mode',
+        'script': "I can hear your frustration, and I want to make this right. Let\'s focus on solving your specific issue first.",
+        'next_step': 'Address root cause before presenting offers',
+        'escalation': 'If frustration continues: "Let me connect you with my supervisor who can authorize additional solutions."'
+    }
+    
+    # If customer sounds confused
+    guidance['if_confused'] = {
+        'indicators': 'Asking for clarification, long pauses, "I don\'t understand"',
+        'immediate_action': '⚠️ Simplify explanation - avoid technical jargon',
+        'script': "Let me explain that more simply: [use plain language]",
+        'next_step': 'Confirm understanding: "Does that make sense?"',
+        'tip': 'Use analogies and concrete examples'
+    }
+    
+    # If customer shows interest
+    guidance['if_interested'] = {
+        'indicators': 'Asking questions, "tell me more", engaged tone',
+        'immediate_action': '✅ Strike while hot - present offer details',
+        'script': "I\'m glad you\'re interested! Let me walk you through exactly what you\'ll get...",
+        'next_step': 'Create urgency: "This offer expires in 48 hours"',
+        'closing': 'Ask for commitment: "Can I apply this to your account right now?"'
+    }
+    
+    # If customer is angry
+    guidance['if_angry'] = {
+        'indicators': 'Yelling, threats to cancel, demanding, aggressive language',
+        'immediate_action': '🚨 URGENT - De-escalation protocol',
+        'script': "I sincerely apologize. This is not the experience you deserve. Let me personally ensure we fix this.",
+        'next_step': 'Immediate resolution: Credit account + schedule tech visit + escalate',
+        'escalation': 'Transfer to senior retention specialist ASAP',
+        'document': 'Flag account as VIP recovery - management follow-up required'
+    }
+    
+    return guidance
+
 def display_retention_insights(customer_name, customer_data, churn_prob):
     """Display comprehensive retention insights for agent."""
     profile = extract_customer_profile(customer_data)
     risk_factors = identify_risk_factors(profile, churn_prob)
     recommendations = generate_recommendations(profile, risk_factors, churn_prob)
+    
+    # NEW: Calculate win-back probability
+    winback = calculate_winback_probability(profile, churn_prob)
+    
+    # NEW: Generate objection handlers
+    objection_handlers = generate_objection_handlers(profile, churn_prob)
+    
+    # NEW: Generate conversation flow
+    conversation_flow = generate_conversation_flow(profile, churn_prob, recommendations)
+    
+    # NEW: Determine next contact channel
+    next_contact = determine_next_contact_channel(profile, churn_prob)
+    
+    # NEW: Generate sentiment guidance
+    sentiment_guidance = generate_sentiment_guidance(profile, churn_prob)
     
     # Determine risk level
     if churn_prob > 0.7:
@@ -296,6 +599,18 @@ def display_retention_insights(customer_name, customer_data, churn_prob):
     ltv = profile['monthly_charges'] * 36
     print(f"   Estimated LTV: ${ltv:.2f}")
     
+    # NEW: Win-Back Probability
+    print(f"\n🎲 WIN-BACK PROBABILITY:")
+    print(f"   Retention Likelihood: {winback['probability']:.2%}")
+    print(f"   Strategy: {winback['strategy']}")
+    print(f"   Approach: {winback['description']}")
+    if winback['strategy'] == 'AGGRESSIVE_SAVE':
+        print(f"   💰 Authorization: Up to ${min(500, int(ltv * 0.15))} in incentives")
+    elif winback['strategy'] == 'NEGOTIATION':
+        print(f"   💰 Authorization: Up to ${min(300, int(ltv * 0.10))} in incentives")
+    else:
+        print(f"   💰 Authorization: Standard offers only (up to ${min(150, int(ltv * 0.05))})")
+    
     # Risk Factors
     if risk_factors:
         print(f"\n⚠️  RISK FACTORS ({len(risk_factors)}):")
@@ -310,7 +625,7 @@ def display_retention_insights(customer_name, customer_data, churn_prob):
         print(f"      {rec['description']}")
         print(f"      Impact: {rec['expected_impact']}")
     
-    # Primary Offer
+    # Primary Offer with Time Urgency
     if profile['senior_citizen'] and profile['monthly_charges'] > 90:
         primary_offer = f"Senior Bundle: ${profile['monthly_charges'] - 30:.2f}/month + Free tech support"
     elif profile['tenure_months'] < 6:
@@ -325,9 +640,63 @@ def display_retention_insights(customer_name, customer_data, churn_prob):
     
     print(f"\n📞 PRIMARY RETENTION OFFER:")
     print(f"   {primary_offer}")
+    print(f"   ⏰ EXPIRES: 48 hours from contact")
+    print(f"   📅 Follow-up: Schedule callback if customer needs time to decide")
     
-    # Talking Points
-    print(f"\n💬 AGENT TALKING POINTS:")
+    # NEW: Conversation Flow Playbook
+    print(f"\n🗣️  CONVERSATION PLAYBOOK (Step-by-Step):")
+    for step_key in ['step1', 'step2', 'step3', 'step4']:
+        step = conversation_flow[step_key]
+        print(f"\n   📍 {step['phase']} ({step['timing']})")
+        print(f"      Goal: {step['objective']}")
+        if 'script' in step:
+            for idx, line in enumerate(step['script'], 1):
+                print(f"      {idx}. \"{line}\"")
+        if 'listen_for' in step:
+            print(f"      👂 Listen for: {', '.join(step['listen_for'])}")
+        if 'notes' in step:
+            print(f"      {step['notes']}")
+    
+    # NEW: Objection Handling
+    if objection_handlers:
+        print(f"\n🛡️  OBJECTION HANDLING SCRIPTS ({len(objection_handlers)} scenarios):")
+        for idx, handler in enumerate(objection_handlers, 1):
+            print(f"\n   {idx}. {handler['objection']}")
+            print(f"      Agent Says: \"{handler['response']}\"")
+            print(f"      ➡️  Action: {handler['action']}")
+            print(f"      � Fallback: {handler['fallback']}")
+            print(f"      ⬆️  Escalation: {handler['escalation']}")
+    
+    # NEW: Next Contact Channel
+    print(f"\n📱 NEXT-BEST-CONTACT CHANNEL:")
+    print(f"   Recommended: {next_contact['primary']}")
+    print(f"   Timing: {next_contact['timing']}")
+    print(f"   Reason: {next_contact['reason']}")
+    print(f"   Backup: {next_contact['backup']}")
+    print(f"   Message: \"{next_contact['message']}\"")
+    
+    # NEW: Real-Time Sentiment Monitoring
+    print(f"\n🎭 REAL-TIME SENTIMENT MONITORING:")
+    print(f"   Keywords to Watch:")
+    for keyword_group in sentiment_guidance['watch_for']:
+        print(f"      • {keyword_group}")
+    
+    print(f"\n   If Customer is FRUSTRATED:")
+    print(f"      🚨 {sentiment_guidance['if_frustrated']['immediate_action']}")
+    print(f"      Say: \"{sentiment_guidance['if_frustrated']['script']}\"")
+    
+    print(f"\n   If Customer is INTERESTED:")
+    print(f"      ✅ {sentiment_guidance['if_interested']['immediate_action']}")
+    print(f"      Say: \"{sentiment_guidance['if_interested']['script']}\"")
+    print(f"      Close: \"{sentiment_guidance['if_interested']['closing']}\"")
+    
+    print(f"\n   If Customer is ANGRY:")
+    print(f"      🚨 {sentiment_guidance['if_angry']['immediate_action']}")
+    print(f"      Say: \"{sentiment_guidance['if_angry']['script']}\"")
+    print(f"      ⚠️  {sentiment_guidance['if_angry']['escalation']}")
+    
+    # Traditional Talking Points
+    print(f"\n💬 ADDITIONAL TALKING POINTS:")
     print(f"   • Thank you for being a Comcast customer ({profile['tenure_months']} months)")
     if churn_prob > 0.5:
         print(f"   • I want to ensure you're getting the best value")
