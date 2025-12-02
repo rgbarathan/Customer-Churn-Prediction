@@ -1,0 +1,49 @@
+{
+  "session_id": "session_20251201_135046",
+  "timestamp": "2025-12-01T13:50:46.344402",
+  "customer_id": 1,
+  "customer_name": "John Smith",
+  "churn_probability": 0.7963,
+  "csr_name": "Sarah Johnson",
+  "mode": "interactive",
+  "questions": [
+    {
+      "timestamp": "2025-12-01T13:50:46.344405",
+      "question": "How can I reduce my bill?",
+      "answer": "Bundle discounts available for TV + Internet + Phone",
+      "confidence": 0.625,
+      "category": "billing",
+      "source": "comcast_kb",
+      "is_confident": true,
+      "flagged_for_review": false
+    },
+    {
+      "timestamp": "2025-12-01T13:50:46.344407",
+      "question": "What loyalty programs do you have?",
+      "answer": "service improvements",
+      "confidence": 0.2436,
+      "category": "retention",
+      "source": "squad",
+      "is_confident": false,
+      "flagged_for_review": true
+    },
+    {
+      "timestamp": "2025-12-01T13:50:46.344408",
+      "question": "Can I upgrade my internet speed?",
+      "answer": "Yes, upgrades available in most areas",
+      "confidence": 0.712,
+      "category": "services",
+      "source": "comcast_kb",
+      "is_confident": true,
+      "flagged_for_review": false
+    }
+  ],
+  "summary": {
+    "total_questions": 3,
+    "average_confidence": 0.5268666666666667,
+    "low_confidence_count": 1,
+    "end_timestamp": "2025-12-01T13:50:46.344412",
+    "duration_seconds": 1.2e-05,
+    "user_summary": "Customer interested in bundle upgrade"
+  }
+}
