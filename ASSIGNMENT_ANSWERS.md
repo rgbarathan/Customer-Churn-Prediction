@@ -49,11 +49,7 @@ The integration of both AI tasks creates synergistic value - the classification 
 - **Usage:** Training and testing the churn prediction neural network
 - **Features:** Demographics (gender, senior citizen, partner, dependents), service details (tenure, phone, internet, streaming), billing information (monthly charges, total charges, contract type, payment method), and engineered features (total_services, avg_charge_per_service, has_premium_services)
 
-**Source 2: SQuAD 2.0 Dataset (Previously included for Q&A System)**
-- **Type:** Question answering dataset
-- **Note:** This data source was used in an earlier version that included a Q&A system. The current production system focuses exclusively on customer churn prediction and retention recommendations. The Q&A component has been deprecated in favor of enhanced agent guidance features.
-
-**Source 3: Customer Risk Factor Analysis Rules**
+**Source 2: Customer Risk Factor Analysis Rules**
 - **Type:** Business logic and domain expertise (embedded in code)
 - **Method:** Analyzed churn dataset patterns to identify key risk factors
 - **Key Risk Factors Identified:**
@@ -65,7 +61,7 @@ The integration of both AI tasks creates synergistic value - the classification 
   - **Service type:** New premium customers (fiber + short tenure = HIGH)
 - **Usage:** Generates personalized recommendations based on identified risk factors
 
-**Source 4: Retention Strategy Database**
+**Source 3: Retention Strategy Database**
 - **Type:** Actionable business recommendations with advanced agent guidance (embedded in code)
 - **Method:** Industry best practices for telecom customer retention + conversation design
 - **Recommendation Categories:**
