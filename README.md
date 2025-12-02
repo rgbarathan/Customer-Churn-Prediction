@@ -1,16 +1,17 @@
-# 🎯 Customer Churn Prediction & QA System
+# 🎯 Customer Churn Prediction & Retention System
 
-A comprehensive machine learning system that **predicts customer churn** and **provides AI-powered retention strategies** using neural networks and question-answering models.
+A comprehensive machine learning system that **predicts customer churn** and **provides AI-powered retention strategies** using advanced neural networks with class imbalance handling and feature engineering.
 
 ## 📋 Project Overview
 
 **Objective**: Help Comcast identify at-risk customers early and engage them with personalized, AI-generated retention offers.
 
 **Result**: End-to-end system combining:
-- 🧠 Deep learning churn prediction (80.91% accuracy)
-- 🤖 AI-powered question answering (39K+ contexts)
+- 🧠 Deep learning churn prediction with **80.16% recall** (catches 8 out of 10 churners!)
+- 🎯 Advanced feature engineering (23 engineered features)
+- ⚖️ Class imbalance handling (weighted loss with pos_weight=2.77)
 - 📊 Risk-based customer segmentation
-- 💬 Intelligent engagement system
+- 💬 Interactive CLI for customer analysis
 
 ---
 
@@ -18,19 +19,26 @@ A comprehensive machine learning system that **predicts customer churn** and **p
 
 ### Prerequisites
 ```bash
-pip install torch pandas transformers scikit-learn
+pip install torch pandas scikit-learn
 ```
 
 ### Run the Complete System
 ```bash
-# Train churn model
+# Train enhanced churn model (with class imbalance handling + feature engineering)
 python churn_prediction.py
 
-# Run integrated prediction + QA
-python main.py
+# Run interactive system
+python main.py              # Demo mode + optional menu
+python main.py --demo       # Demo only (5 test customers)
+python main.py --menu       # Interactive menu only
+```
 
-# Test standalone QA
-python QA.py
+### Interactive Menu Options
+```
+1. Analyze Single Customer (by ID)
+2. Generate High-Risk Customer Report  
+3. Run Demo (5 Test Customers)
+4. Exit
 ```
 
 ### Expected Output
@@ -44,10 +52,10 @@ Status: ✅ RETAIN - Low risk customer
 ============================================================
 CUSTOMER 2: HIGH-RISK #1 (Senior Citizen - New Customer)
 ============================================================
-Tenure: 2 months | Churn probability: 65.76%
+Tenure: 2 months | Churn probability: 91.57%
 Status: ⚠️ AT RISK - Needs intervention
 
-[QA SYSTEM ENGAGES WITH PERSONALIZED RESPONSE]
+[RETENTION INSIGHTS WITH PERSONALIZED RECOMMENDATIONS]
 ```
 
 ---
@@ -56,49 +64,58 @@ Status: ⚠️ AT RISK - Needs intervention
 
 ```
 Project/
-├── main.py                                 # Main entry point
-├── churn_prediction.py                    # Model training
-├── squad_qa_system.py                     # Enhanced QA system
-├── QA.py                                  # Standalone QA demo
+├── main.py                                 # Main entry point (interactive CLI)
+├── churn_prediction.py                    # Enhanced model training
 ├── INTEGRATION_SUMMARY.md                 # System overview
 ├── ARCHITECTURE.md                        # Technical details
 ├── README.md                              # This file
 │
 ├── models/
-│   ├── churn_model.pth                   # Trained model (16 KB)
-│   └── scaler.pkl                        # Feature scaler (1.2 KB)
+│   ├── churn_model.pth                   # Trained model with 23 features
+│   ├── scaler.pkl                        # Feature scaler
+│   └── feature_names.pkl                 # Feature names for compatibility
 │
-├── archive/
-│   ├── train-v2.0.json                   # SQuAD training (19,035 contexts)
-│   └── dev-v2.0.json                     # SQuAD development (20,239 contexts)
-│
-└── WA_Fn-UseC_-Telco-Customer-Churn.csv  # Customer dataset (7,000 records)
+└── WA_Fn-UseC_-Telco-Customer-Churn.csv  # Customer dataset (7,043 records)
 ```
 
 ---
 
 ## 🏗️ System Architecture
 
-### 1. **Churn Prediction Model**
+### 1. **Enhanced Churn Prediction Model**
 ```
-Input (19 features) → Dense(64) → Dense(32) → Output(1) [0-1 probability]
+Input (23 features) → Dense(64) → Dropout(0.3) → Dense(32) → Dropout(0.3) → Output(1)
 ```
 
-**Features Analyzed**:
+**🆕 Enhancements**:
+- ✅ **Class Imbalance Handling**: BCEWithLogitsLoss with pos_weight=2.77
+- ✅ **Feature Engineering**: 4 new interaction features (tenure_to_charges_ratio, service_count, service_density, payment_reliability)
+- ✅ **Dropout Regularization**: 30% dropout for better generalization
+- ✅ **Interactive CLI**: Analyze single customers, generate bulk reports
+
+**Original Features (19)**:
 - Demographics: age, gender, family status
 - Tenure & charges: how long they've been with us & cost
 - Services: internet type, add-ons, contracts
 - Engagement: security, backup, streaming services
 
-**Model Performance**:
-| Metric | Value |
-|--------|-------|
-| Accuracy | 80.91% |
-| Precision | 65.85% |
-| Recall | 57.91% |
-| F1-Score | 0.6163 |
+**Engineered Features (4)**:
+- `tenure_to_charges_ratio`: Value indicator (TotalCharges / (tenure × MonthlyCharges))
+- `service_count`: Total number of active services
+- `service_density`: Services per dollar (service_count / MonthlyCharges)
+- `payment_reliability`: Actual vs expected payments ratio
 
-### 2. **Enhanced QA System**
+**Model Performance** (Enhanced):
+| Metric | Before | After | Improvement |
+|--------|--------|-------|-------------|
+| **Recall** | **56.30%** | **80.16%** | **+23.86 pp** ✨ |
+| **F1-Score** | 60.96% | 63.35% | +2.39 pp |
+| **Precision** | 66.46% | 52.36% | -14.10 pp |
+| **Accuracy** | 80.91% | 75.44% | -5.47 pp |
+
+**Why Recall Matters**: Catching 80% of churners (vs 56%) means preventing **24% more customer losses**—huge business value!
+
+### 2. **Retention Recommendation Engine**
 
 **Three-Tier Context Search**:
 ```
