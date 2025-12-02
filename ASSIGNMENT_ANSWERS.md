@@ -1,9 +1,9 @@
 # Assignment 5: Demo of AI Application with Two Different AI Tasks
 
 ## Collaborator Information
-[If working in a team, add collaborator name here]
-- Team Member 1: [Your Name]
-- Team Member 2: [Collaborator Name, if applicable]
+This assignment was completed as a team of two students:
+- Team Member 1: Ragavendhiran Barathan
+- Team Member 2: Arun Mohan
 
 ---
 
