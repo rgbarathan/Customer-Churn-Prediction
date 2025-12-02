@@ -20,7 +20,7 @@ model = ChurnModel(input_dim=19)
 model.load_state_dict(torch.load('models/churn_model.pth'))
 model.eval()
 
-# Initialize enhanced SQuAD-based QA system
+# Initialize QA system with pre-trained DistilBERT (trained on SQuAD) + Comcast KB
 qa_system = SQuADQASystem()
 
 def interactive_qa_session(customer_name, churn_probability):
@@ -187,7 +187,7 @@ high_risk_customers = [
 ]
 
 print("=" * 70)
-print("ENHANCED QA SYSTEM WITH SQUAD DATASET")
+print("QA SYSTEM - DISTILBERT PRE-TRAINED ON SQUAD")
 print("=" * 70)
 
 # Interactive mode for critical risk customers

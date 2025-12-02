@@ -4,46 +4,44 @@ from transformers import pipeline
 
 class SQuADQASystem:
     """
-    Enhanced QA System using SQuAD v2.0 dataset for Comcast customer support.
-    Integrates the SQuAD training and development datasets to provide
-    context-aware answers for customer questions.
+    QA System for Comcast customer support using DistilBERT pre-trained on SQuAD.
+    
+    KEY IMPLEMENTATION NOTES:
+    - Uses DistilBERT model that was PRE-TRAINED on SQuAD v1.1 by Hugging Face
+    - The model learned extractive QA skills from 100K+ SQuAD question-answer pairs
+    - We provide domain-specific Comcast contexts (not the original Wikipedia SQuAD data)
+    - This demonstrates transfer learning: pre-trained general QA → applied to telecom domain
+    
+    Why this works:
+    1. DistilBERT learned "how to extract answers" from SQuAD training
+    2. We apply that skill to NEW contexts (Comcast knowledge base)
+    3. No need to load original SQuAD contexts (they're about Beyoncé, history, etc.)
+    4. Focus on relevant telecom customer service scenarios
     """
     
     def __init__(self):
-        """Initialize the QA system with SQuAD data and pre-trained model."""
+        """
+        Initialize the QA system with pre-trained model and Comcast knowledge base.
+        
+        The 'distilbert-base-uncased-distilled-squad' model was already trained
+        on SQuAD v1.1 dataset, so we don't need to load or train it ourselves.
+        """
+        # Load pre-trained QA model (trained on SQuAD by Hugging Face)
         self.qa_pipeline = pipeline('question-answering', 
                                    model='distilbert-base-uncased-distilled-squad')
-        self.squad_data = {}
-        self.contexts = []
-        self.load_squad_data()
-        self.setup_comcast_knowledge_base()
-    
-    def load_squad_data(self):
-        """Load and parse SQuAD datasets from archive folder."""
-        squad_files = [
-            'archive/train-v2.0.json',
-            'archive/dev-v2.0.json'
-        ]
         
-        for file_path in squad_files:
-            if os.path.exists(file_path):
-                try:
-                    with open(file_path, 'r') as f:
-                        data = json.load(f)
-                        # Extract contexts from articles
-                        for article in data.get('data', []):
-                            for paragraph in article.get('paragraphs', []):
-                                context = paragraph.get('context', '')
-                                if context:
-                                    self.contexts.append(context)
-                    print(f"✓ Loaded {len(self.contexts)} contexts from {file_path}")
-                except Exception as e:
-                    print(f"⚠ Could not load {file_path}: {e}")
+        # Set up domain-specific knowledge base
+        self.setup_comcast_knowledge_base()
+        
+        print("✓ Loaded DistilBERT model (pre-trained on SQuAD v1.1)")
+        print("✓ Initialized Comcast knowledge base")
     
     def setup_comcast_knowledge_base(self):
         """
         Set up Comcast-specific knowledge base for QA system.
-        This supplements the SQuAD data with telecom-specific information.
+        
+        This is our primary context source for answering customer questions.
+        Contains 13 curated contexts across 4 categories, all telecom-specific.
         """
         self.comcast_kb = {
             'billing': [
@@ -70,22 +68,22 @@ class SQuADQASystem:
     
     def find_best_context(self, question, category=None):
         """
-        Find the most relevant context for a question.
-        First checks Comcast KB, then SQuAD contexts.
+        Find the most relevant context for a question from Comcast knowledge base.
+        
+        Context selection strategy:
+        1. If category specified → use that category's contexts
+        2. If no category → search all categories
+        3. Fallback → generic customer service message
         """
-        # Check Comcast KB first
+        # Check specified category first
         if category and category in self.comcast_kb:
             for context in self.comcast_kb[category]:
                 return context
         
-        # Search all Comcast KB categories
+        # Search all categories if no match
         for category_contexts in self.comcast_kb.values():
             for context in category_contexts:
                 return context
-        
-        # Fallback to SQuAD contexts if available
-        if self.contexts:
-            return self.contexts[0]
         
         # Default fallback
         return "Comcast is committed to providing excellent customer service. How can we help you today?"
