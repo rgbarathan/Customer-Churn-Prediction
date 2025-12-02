@@ -2,7 +2,7 @@
 
 ## Collaborator Information
 This assignment was completed as a team of two students:
-- Team Member 1: Ragavendhiran Barathan
+- Team Member 1: Raja Gopal Barathan
 - Team Member 2: Arun Mohan
 
 ---
