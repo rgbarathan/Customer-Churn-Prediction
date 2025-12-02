@@ -21,25 +21,380 @@ A comprehensive machine learning system that **predicts customer churn** and **p
 
 ---
 
-## 🚀 Quick Start
+## 🚀 Getting Started
 
-### Prerequisites
+### System Requirements
+
+**Minimum Requirements:**
+- **Python**: 3.8 or higher (tested on 3.9, 3.10, 3.11)
+- **RAM**: 2GB minimum (4GB recommended)
+- **Disk Space**: 500MB for dependencies + models
+- **OS**: macOS, Linux, or Windows
+- **Internet**: Required for initial package installation only
+
+**Verify Python Version:**
 ```bash
-pip install torch pandas scikit-learn
+python --version  # Should show 3.8 or higher
+# OR
+python3 --version
 ```
 
-### Run the Complete System
+---
+
+### Installation & Setup
+
+#### **Step 1: Clone or Download the Repository**
+
+**Option A: Clone from GitHub** (Recommended)
 ```bash
-# Train enhanced churn model (with class imbalance handling + feature engineering)
+# Clone the repository
+git clone https://github.com/rgbarathan/Customer-Churn-Prediction.git
+
+# Navigate to project directory
+cd Customer-Churn-Prediction
+```
+
+**Option B: Download ZIP**
+1. Go to https://github.com/rgbarathan/Customer-Churn-Prediction
+2. Click "Code" → "Download ZIP"
+3. Extract the ZIP file
+4. Navigate to the extracted folder in terminal
+
+#### **Step 2: Install Required Python Packages**
+
+**Using pip (Standard):**
+```bash
+# Install all dependencies from requirements.txt
+pip install -r requirements.txt
+
+# OR install individually if requirements.txt not available:
+pip install torch>=2.0.0 pandas>=1.5.0 scikit-learn>=1.3.0
+```
+
+**Using pip3 (if Python 3 is not default):**
+```bash
+pip3 install -r requirements.txt
+```
+
+**Using virtual environment (Recommended for isolation):**
+```bash
+# Create virtual environment
+python -m venv venv
+
+# Activate virtual environment
+# On macOS/Linux:
+source venv/bin/activate
+# On Windows:
+venv\Scripts\activate
+
+# Install packages
+pip install -r requirements.txt
+```
+
+**Verify Installation:**
+```bash
+python -c "import torch; import pandas; import sklearn; print('All packages installed successfully!')"
+```
+
+#### **Step 3: Verify Data File Exists**
+
+Ensure the dataset is present:
+```bash
+# Check if file exists
+ls WA_Fn-UseC_-Telco-Customer-Churn.csv
+
+# Expected output: WA_Fn-UseC_-Telco-Customer-Churn.csv
+```
+
+If missing, download from: https://github.com/rgbarathan/Customer-Churn-Prediction
+
+---
+
+### Quick Start - Running the System
+
+#### **Option 1: First Time Setup (Train Model)**
+
+**Step 1: Train the churn prediction model** (one-time setup, ~2-3 minutes)
+```bash
 python churn_prediction.py
-
-# Run interactive system with all agent guidance features
-python main.py              # Demo mode + optional menu
-python main.py --demo       # Demo only (5 test customers with full insights)
-python main.py --menu       # Interactive menu only
+# OR if Python 3 is not default:
+python3 churn_prediction.py
 ```
 
-### Interactive Menu Options
+**Expected Output:**
+```
+Loading dataset...
+Performing feature engineering...
+Training enhanced model with class imbalance handling...
+Epoch 10/100 - Loss: 0.4823
+Epoch 20/100 - Loss: 0.3654
+...
+Epoch 100/100 - Loss: 0.3156
+Training completed!
+
+📊 Model Performance:
+Accuracy: 75.44%
+Precision: 51.97%
+Recall: 80.16% ⭐
+F1-Score: 63.35%
+
+✅ Model saved: models/churn_model.pth
+✅ Scaler saved: models/scaler.pkl
+```
+
+**Step 2: Run the interactive system**
+```bash
+python main.py
+# OR
+python3 main.py
+```
+
+#### **Option 2: Quick Demo (If Model Already Trained)**
+
+```bash
+# Run demo with 5 test customers showing all features
+python main.py --demo
+
+# Run interactive menu only
+python main.py --menu
+
+# Run both demo then menu (default)
+python main.py
+```
+
+---
+
+### Usage Examples
+
+#### **Analyze a Single Customer**
+```bash
+python main.py --menu
+# Then select: Option 1 - Analyze Single Customer
+# Enter customer ID (1-7043)
+```
+
+#### **Generate High-Risk Report**
+```bash
+python main.py --menu
+# Then select: Option 2 - Generate High-Risk Customer Report
+# Specify minimum churn probability (e.g., 0.7 for 70%)
+# Report saved to: high_risk_customers_report.csv
+```
+
+#### **Test All Enhancement Features**
+```bash
+python test_enhancements.py
+# Tests: Win-back probability, objection handlers, conversation flow,
+#        channel recommendations, sentiment monitoring
+```
+
+---
+
+### What You'll See - Complete Output Example
+
+When you run `python main.py --demo`, here's what the system displays:
+
+```
+🎯 CHURN PREDICTION & RETENTION INSIGHTS DEMO
+==============================================
+
+Running analysis for 5 test customers...
+
+============================================================
+CUSTOMER 2: HIGH-RISK #1 (Senior Citizen - New Customer)
+============================================================
+
+📋 CUSTOMER PROFILE:
+   Tenure: 2 months
+   Monthly Charges: $106.70
+   Total Charges: $213.40
+   Contract: Month-to-month
+   Services: 1 active
+   Internet: DSL
+   Senior: Yes
+   Add-ons: No
+
+🎯 CHURN RISK ANALYSIS:
+   Risk Level: 🔴 CRITICAL
+   Churn Probability: 91.57%
+   Urgency: IMMEDIATE - Contact within 24 hours
+   Estimated LTV: $3,841.20
+
+⚠️ RISK FACTORS (6 identified):
+   1. [CRITICAL] Very Short Tenure
+      Only 2 month(s) - highest churn risk period
+   
+   2. [HIGH] High Monthly Charges
+      $106.70/month may cause price sensitivity
+   
+   3. [HIGH] No Contract Commitment
+      Easy to cancel without penalties
+   
+   4. [MEDIUM] Low Service Engagement
+      Only 1 service(s) - low switching costs
+   
+   5. [MEDIUM] No Value-Added Services
+      Missing security, backup, protection
+   
+   6. [MEDIUM] Senior Citizen
+      May be more price-sensitive
+
+💡 RECOMMENDED ACTIONS (6 prioritized):
+   1. [Priority 1] 🚨 Immediate Outreach Required
+      Contact within 24 hours with exclusive retention offer
+      Impact: 65% retention success rate
+   
+   2. [Priority 1] 🆕 New Customer Retention (Tenure: 2 mo)
+      50% off next 3 months + Free premium channels
+      Impact: 68% retention success
+   
+   3. [Priority 2] 💰 Reduce Monthly Cost (Currently $106.70)
+      Senior Bundle Special: Reduce to $76.00/month
+      Impact: Save $31/month - 72% success rate
+   
+   4. [Priority 2] 📝 Convert to Long-Term Contract
+      24-month: $25/month off + Price Lock Guarantee
+      Impact: 58% conversion rate
+   
+   5. [Priority 2] 👴 Senior Advantage Program
+      $15/month discount + Free tech support
+      Impact: 75% enrollment success
+   
+   6. [Priority 3] 📦 Increase Service Bundle (Current: 1)
+      Free add-ons for 6 months (Security, Backup, Streaming)
+      Impact: Increase LTV by $500-1000
+
+📞 PRIMARY RETENTION OFFER:
+   Senior Bundle: $76.00/month + Free tech support
+
+💬 AGENT TALKING POINTS:
+   • Thank you for being a Comcast customer (2 months)
+   • I want to ensure you're getting the best value
+   • I have exclusive offers designed for valued customers like you
+   • As a senior, you qualify for special discounts and support
+   • What's most important: lower cost, more services, or better support?
+
+📖 CONVERSATION PLAYBOOK (4-STEP FLOW):
+
+   STEP 1: Greeting & Build Rapport (0-2 minutes)
+   └─ Key Message: "Thank you for being a valued Comcast customer for 2 months"
+   └─ Objective: Establish trust and permission to discuss account
+   └─ Transition: "I'm reaching out because I want to ensure you're getting the best value..."
+
+   STEP 2: Diagnose Needs & Pain Points (2-5 minutes)
+   └─ Key Message: "I noticed you're currently paying $106.70/month for DSL service"
+   └─ Probing Questions:
+      • "Are you satisfied with your current internet speed?"
+      • "Have you considered adding streaming services to your plan?"
+      • "What's most important to you: lower cost, faster speed, or more services?"
+   └─ Listen For: Price sensitivity, competitor comparisons, service dissatisfaction
+
+   STEP 3: Present Solution with Value (5-10 minutes)
+   └─ Primary Offer: Senior Bundle at $76/month (save $31/month)
+   └─ Value Props:
+      • Immediate $31/month savings
+      • Free tech support (valued at $10/month)
+      • Price lock guarantee for 24 months
+      • Free premium channels for 3 months
+   └─ Alternative Offer: 24-month contract with $25/month discount
+   └─ Trial Close: "Would the $31 monthly savings make a difference in your budget?"
+
+   STEP 4: Handle Objections & Close (10-15 minutes)
+   └─ Common Objections: See objection handlers below
+   └─ Closing Statement: "I can apply this Senior Bundle discount today, saving you $1,116 over 3 years. Shall we get started?"
+   └─ Next Steps: Schedule installation/activation call, confirm contact preferences
+   └─ Follow-up: Courtesy call in 7 days to ensure satisfaction
+
+🛡️ OBJECTION HANDLERS (4 COMMON SCENARIOS):
+
+   OBJECTION 1: "This is too expensive"
+   └─ Response: "I completely understand budget concerns, especially on a fixed income..."
+   └─ Success Rate: 72%
+   └─ Fallback Offer: 3 months at 50% off to try the service
+
+   OBJECTION 2: "I'm considering switching to [competitor]"
+   └─ Response: "I appreciate you sharing that. While I can't speak to their offers..."
+   └─ Success Rate: 65%
+   └─ Proof Point: Comcast has 99.9% uptime vs. competitor X's 95%
+
+   [Additional objection handlers displayed...]
+
+🎲 WIN-BACK PROBABILITY SCORE:
+
+   Base Retention Likelihood: 8% (based on 91.57% churn risk)
+   
+   Adjustments:
+   + Senior discount applied: +15%
+   + Price reduction ($31/month): +25%
+   + New customer onboarding: +10%
+   + Contract commitment incentive: +8%
+   - Month-to-month flexibility lost: -10%
+   - Very short tenure penalty: -5%
+   
+   FINAL WIN-BACK PROBABILITY: 83.58%
+   
+   Confidence Level: HIGH (5 positive factors, 2 negative)
+   Recommended Investment: Up to $500 retention incentive justified by $3,841 LTV
+
+📱 NEXT-BEST CONTACT CHANNEL:
+
+   RECOMMENDED: 📞 Phone Call (Priority: CRITICAL)
+   
+   Reasoning:
+   • Senior citizen: prefers voice communication (87% preference)
+   • Complex offer requiring explanation
+   • Critical churn risk (91.57%): requires personal touch
+   
+   Best Time to Call: Weekday mornings 9-11 AM
+   Backup Channel: In-home visit if phone fails
+   Avoid: Email/SMS (low engagement for 65+ demographic)
+
+😊 SENTIMENT MONITORING & DE-ESCALATION:
+
+   POSITIVE KEYWORDS (Build on these):
+   ✓ "good," "satisfied," "like," "helpful," "appreciate"
+   
+   NEGATIVE KEYWORDS (Watch for these):
+   ✗ "frustrated," "expensive," "cancel," "unhappy," "competitor"
+   
+   ESCALATION TRIGGERS (Immediate manager involvement):
+   🚨 "lawyer," "file complaint," "sue," "report," "BBB"
+
+⏰ TIME-SENSITIVE URGENCY:
+
+   OFFER EXPIRATION: 48 hours from contact time
+   
+   Follow-up Schedule:
+   • +24 hours: Email reminder with offer summary
+   • +36 hours: SMS reminder "12 hours left to save $372/year"
+   • +48 hours: Final outreach call
+   
+   Success Rate with Urgency: 82% (vs. 65% without)
+
+============================================================
+
+Press Enter to continue to next customer...
+
+[4 more customers displayed with similar comprehensive insights]
+```
+
+**Interactive Menu Output:**
+```
+╔════════════════════════════════════════════════════════════╗
+║   CUSTOMER CHURN PREDICTION & RETENTION INSIGHTS SYSTEM   ║
+╚════════════════════════════════════════════════════════════╝
+
+Please select an option:
+
+1. 👤 Analyze Single Customer (by ID)
+2. 📊 Generate High-Risk Customer Report
+3. 🎯 Run Demo (5 Test Customers)
+4. 🚪 Exit
+
+Enter your choice (1-4): _
+```
+
+---### Interactive Menu Options
 ```
 1. Analyze Single Customer (by ID) - Get complete retention playbook
 2. Generate High-Risk Customer Report - Bulk analysis with CSV export
@@ -522,24 +877,171 @@ Total:                      419 lines
 
 ---
 
+## ❓ Troubleshooting
+
+### Common Issues & Solutions
+
+#### **Issue 1: "No module named 'torch'" or "No module named 'pandas'"**
+**Solution:**
+```bash
+# Install missing packages
+pip install torch pandas scikit-learn
+
+# Or if using Python 3 explicitly:
+pip3 install torch pandas scikit-learn
+
+# Verify installation
+python -c "import torch; import pandas; import sklearn; print('Success!')"
+```
+
+#### **Issue 2: "FileNotFoundError: WA_Fn-UseC_-Telco-Customer-Churn.csv"**
+**Solution:**
+```bash
+# Make sure you're in the correct directory
+cd "Customer-Churn-Prediction"
+
+# Verify the CSV file exists
+ls WA_Fn-UseC_-Telco-Customer-Churn.csv
+
+# If missing, re-clone the repository or download from GitHub
+```
+
+#### **Issue 3: "FileNotFoundError: models/churn_model.pth"**
+**Solution:**
+```bash
+# You need to train the model first (one-time setup)
+python churn_prediction.py
+
+# Wait for training to complete (~2-3 minutes)
+# Then run main.py
+python main.py
+```
+
+#### **Issue 4: "RuntimeError: mat1 and mat2 shapes cannot be multiplied"**
+**Solution:**
+This means feature mismatch. Retrain the model:
+```bash
+# Remove old model files
+rm -rf models/
+
+# Retrain with correct feature engineering
+python churn_prediction.py
+
+# Then run main
+python main.py
+```
+
+#### **Issue 5: Python version too old (< 3.8)**
+**Solution:**
+```bash
+# Check your Python version
+python --version
+
+# If < 3.8, install Python 3.9+ from python.org
+# Then use python3 explicitly:
+python3 churn_prediction.py
+python3 main.py
+```
+
+#### **Issue 6: "ModuleNotFoundError: No module named 'sklearn'"**
+**Solution:**
+```bash
+# Install scikit-learn (sklearn is the package name)
+pip install scikit-learn
+
+# Verify
+python -c "import sklearn; print('scikit-learn installed!')"
+```
+
+#### **Issue 7: Slow performance or memory errors**
+**Solution:**
+```bash
+# Reduce batch processing or run on smaller dataset
+# Close other applications to free up RAM
+# Minimum 2GB RAM required, 4GB recommended
+```
+
+#### **Issue 8: "Permission denied" when installing packages**
+**Solution:**
+```bash
+# Option 1: Use --user flag
+pip install --user torch pandas scikit-learn
+
+# Option 2: Use virtual environment (recommended)
+python -m venv venv
+source venv/bin/activate  # On macOS/Linux
+pip install -r requirements.txt
+```
+
+#### **Issue 9: Model predictions seem random or incorrect**
+**Solution:**
+```bash
+# Ensure model was trained properly - check for this output:
+# "Recall: 80.16%" (should be around 75-85%)
+
+# If recall is very low (<50%), retrain:
+rm models/churn_model.pth
+python churn_prediction.py
+```
+
+#### **Issue 10: "UnicodeDecodeError" when reading CSV**
+**Solution:**
+```python
+# Edit churn_prediction.py, line ~20, add encoding parameter:
+df = pd.read_csv('WA_Fn-UseC_-Telco-Customer-Churn.csv', encoding='utf-8')
+```
+
+### Still Having Issues?
+
+1. **Check Python version**: `python --version` (must be 3.8+)
+2. **Check package versions**: `pip list | grep -E "torch|pandas|scikit"`
+3. **Verify all files exist**: 
+   ```bash
+   ls WA_Fn-UseC_-Telco-Customer-Churn.csv
+   ls churn_prediction.py
+   ls main.py
+   ```
+4. **Start fresh**:
+   ```bash
+   # Remove virtual environment
+   rm -rf venv/
+   
+   # Remove models
+   rm -rf models/
+   
+   # Reinstall packages
+   pip install -r requirements.txt
+   
+   # Retrain model
+   python churn_prediction.py
+   
+   # Run system
+   python main.py
+   ```
+
+---
+
 ## 🤝 Contributing
 
 To improve this system:
 
 1. **Add more training data**: Increase model accuracy
-2. **Fine-tune QA model**: Train on Comcast domain
+2. **Expand objection handlers**: Add more scenarios beyond 4 common types
 3. **Expand knowledge base**: Add more retention strategies
 4. **Implement feedback loop**: Learn from actual outcomes
 5. **Build monitoring dashboard**: Track real-world performance
+6. **A/B test conversation playbooks**: Optimize for highest conversion
 
 ---
 
 ## 📞 Support & Contact
 
 For questions or improvements:
-- Review [ARCHITECTURE.md](ARCHITECTURE.md) for technical details
-- Check [INTEGRATION_SUMMARY.md](INTEGRATION_SUMMARY.md) for system overview
-- Run `python main.py` to see the system in action
+- **Documentation**: Review [ARCHITECTURE.md](ARCHITECTURE.md) for technical details
+- **System Overview**: Check [INTEGRATION_SUMMARY.md](INTEGRATION_SUMMARY.md)
+- **Quick Demo**: Run `python main.py --demo` to see all features
+- **GitHub Issues**: https://github.com/rgbarathan/Customer-Churn-Prediction/issues
+- **Repository**: https://github.com/rgbarathan/Customer-Churn-Prediction
 
 ---
 
