@@ -792,13 +792,33 @@ def analyze_high_risk_customers():
     if df is None:
         return
     
-    threshold = input("\nEnter churn probability threshold (default 0.5): ").strip()
-    try:
-        threshold = float(threshold) if threshold else 0.5
-    except ValueError:
-        threshold = 0.5
+    # Preset threshold choices
+    print("\n📊 Select risk threshold:")
+    print("   1. 🔴 Critical Only (70%+) - Immediate action required")
+    print("   2. 🟠 High Risk (60%+) - Proactive outreach recommended")
+    print("   3. 🟡 Medium Risk (50%+) - Broader prevention strategy")
+    print("   4. 🟢 All At-Risk (30%+) - Early intervention & campaigns")
     
-    print(f"\nAnalyzing {len(df)} customers... (this may take a moment)")
+    choice = input("\nSelect option (1-4, default=2): ").strip()
+    
+    threshold_map = {
+        '1': 0.7,
+        '2': 0.6,
+        '3': 0.5,
+        '4': 0.3,
+        '': 0.6  # Default to option 2
+    }
+    
+    threshold = threshold_map.get(choice, 0.6)
+    
+    risk_labels = {
+        0.7: "🔴 CRITICAL (70%+)",
+        0.6: "🟠 HIGH RISK (60%+)",
+        0.5: "🟡 MEDIUM RISK (50%+)",
+        0.3: "🟢 AT-RISK (30%+)"
+    }
+    
+    print(f"\nAnalyzing {len(df)} customers for {risk_labels.get(threshold, 'risk')}... (this may take a moment)")
     
     # Prepare data
     df_original = df.copy()
@@ -830,7 +850,7 @@ def analyze_high_risk_customers():
     high_risk_customers['ChurnProbability'] = churn_probs[high_risk_mask]
     high_risk_customers = high_risk_customers.sort_values('ChurnProbability', ascending=False)
     
-    print(f"\n🔴 Found {len(high_risk_customers)} high-risk customers (>{threshold:.0%} churn probability)")
+    print(f"\n{risk_labels.get(threshold, '⚠️')} Found {len(high_risk_customers)} high-risk customers (>{threshold:.0%} churn probability)")
     
     if len(high_risk_customers) == 0:
         return
@@ -859,148 +879,148 @@ def run_demo():
     print("DEMO MODE - 5 TEST CUSTOMERS")
     print("="*70)
 
-# Example combined workflow
-# Low-risk customer (loyal, long tenure)
-customer_data_low = pd.DataFrame([[1, 0, 29, 1, 0, 1, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 70.0, 150.0]],
+    # Example combined workflow
+    # Low-risk customer (loyal, long tenure)
+    customer_data_low = pd.DataFrame([[1, 0, 29, 1, 0, 1, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 70.0, 150.0]],
                               columns=['gender','SeniorCitizen','Partner','Dependents','tenure','PhoneService','MultipleLines','InternetService','OnlineSecurity','OnlineBackup','DeviceProtection','TechSupport','StreamingTV','StreamingMovies','Contract','PaperlessBilling','PaymentMethod','MonthlyCharges','TotalCharges'])
 
-# Scale the customer data using the same scaler
-customer_data_low_enhanced = add_engineered_features(customer_data_low)
-customer_data_scaled = scaler.transform(customer_data_low_enhanced)
-customer_tensor = torch.tensor(customer_data_scaled, dtype=torch.float32)
-with torch.no_grad():
-    output = model(customer_tensor)
-    churn_prob_low = torch.sigmoid(output).item() if input_dim > 19 else output.item()
-print("=" * 70)
-print("CUSTOMER 1: LOW-RISK (Loyal Customer)")
-print("=" * 70)
-print(f"Tenure: 29 months | Monthly Charges: $70 | Total Charges: $150")
-print(f"Services: Phone, Internet, Security, Backup, Tech Support")
-print(f"Churn probability: {churn_prob_low:.2%}")
-print(f"Status: ✅ RETAIN - Low risk customer\n")
+    # Scale the customer data using the same scaler
+    customer_data_low_enhanced = add_engineered_features(customer_data_low)
+    customer_data_scaled = scaler.transform(customer_data_low_enhanced)
+    customer_tensor = torch.tensor(customer_data_scaled, dtype=torch.float32)
+    with torch.no_grad():
+        output = model(customer_tensor)
+        churn_prob_low = torch.sigmoid(output).item() if input_dim > 19 else output.item()
+    print("=" * 70)
+    print("CUSTOMER 1: LOW-RISK (Loyal Customer)")
+    print("=" * 70)
+    print(f"Tenure: 29 months | Monthly Charges: $70 | Total Charges: $150")
+    print(f"Services: Phone, Internet, Security, Backup, Tech Support")
+    print(f"Churn probability: {churn_prob_low:.2%}")
+    print(f"Status: ✅ RETAIN - Low risk customer\n")
 
-# High-risk customer #1 (new, high charges, minimal services)
-customer_data_high1 = pd.DataFrame([[1, 1, 2, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 4, 105.0, 210.0]],
+    # High-risk customer #1 (new, high charges, minimal services)
+    customer_data_high1 = pd.DataFrame([[1, 1, 2, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 4, 105.0, 210.0]],
                               columns=['gender','SeniorCitizen','Partner','Dependents','tenure','PhoneService','MultipleLines','InternetService','OnlineSecurity','OnlineBackup','DeviceProtection','TechSupport','StreamingTV','StreamingMovies','Contract','PaperlessBilling','PaymentMethod','MonthlyCharges','TotalCharges'])
 
-customer_data_scaled_high1 = scaler.transform(add_engineered_features(customer_data_high1))
-customer_tensor_high1 = torch.tensor(customer_data_scaled_high1, dtype=torch.float32)
-with torch.no_grad():
-    output = model(customer_tensor_high1)
-    churn_prob_high1 = torch.sigmoid(output).item() if input_dim > 19 else output.item()
-print("=" * 70)
-print("CUSTOMER 2: HIGH-RISK #1 (Senior Citizen - New Customer)")
-print("=" * 70)
-print(f"Tenure: 2 months | Monthly Charges: $105 | Total Charges: $210")
-print(f"Services: Internet only (no phone, security, backup, tech support)")
-print(f"Senior Citizen: Yes | High monthly charges")
-print(f"Churn probability: {churn_prob_high1:.2%}")
-print(f"Status: ⚠️  AT RISK - Needs intervention\n")
+    customer_data_scaled_high1 = scaler.transform(add_engineered_features(customer_data_high1))
+    customer_tensor_high1 = torch.tensor(customer_data_scaled_high1, dtype=torch.float32)
+    with torch.no_grad():
+        output = model(customer_tensor_high1)
+        churn_prob_high1 = torch.sigmoid(output).item() if input_dim > 19 else output.item()
+    print("=" * 70)
+    print("CUSTOMER 2: HIGH-RISK #1 (Senior Citizen - New Customer)")
+    print("=" * 70)
+    print(f"Tenure: 2 months | Monthly Charges: $105 | Total Charges: $210")
+    print(f"Services: Internet only (no phone, security, backup, tech support)")
+    print(f"Senior Citizen: Yes | High monthly charges")
+    print(f"Churn probability: {churn_prob_high1:.2%}")
+    print(f"Status: ⚠️  AT RISK - Needs intervention\n")
 
-# High-risk customer #2 (month-to-month, high charges, no extras)
-customer_data_high2 = pd.DataFrame([[0, 0, 3, 0, 1, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 3, 95.0, 285.0]],
+    # High-risk customer #2 (month-to-month, high charges, no extras)
+    customer_data_high2 = pd.DataFrame([[0, 0, 3, 0, 1, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 3, 95.0, 285.0]],
                               columns=['gender','SeniorCitizen','Partner','Dependents','tenure','PhoneService','MultipleLines','InternetService','OnlineSecurity','OnlineBackup','DeviceProtection','TechSupport','StreamingTV','StreamingMovies','Contract','PaperlessBilling','PaymentMethod','MonthlyCharges','TotalCharges'])
 
-customer_data_scaled_high2 = scaler.transform(add_engineered_features(customer_data_high2))
-customer_tensor_high2 = torch.tensor(customer_data_scaled_high2, dtype=torch.float32)
-with torch.no_grad():
-    output = model(customer_tensor_high2)
-    churn_prob_high2 = torch.sigmoid(output).item() if input_dim > 19 else output.item()
-print("=" * 70)
-print("CUSTOMER 3: HIGH-RISK #2 (Month-to-Month Contract)")
-print("=" * 70)
-print(f"Tenure: 3 months | Monthly Charges: $95 | Total Charges: $285")
-print(f"Services: Internet only | Month-to-month contract (no commitment)")
-print(f"Contract Type: Month-to-Month (high flexibility to leave)")
-print(f"Churn probability: {churn_prob_high2:.2%}")
-print(f"Status: ⚠️  AT RISK - Easy to switch providers\n")
+    customer_data_scaled_high2 = scaler.transform(add_engineered_features(customer_data_high2))
+    customer_tensor_high2 = torch.tensor(customer_data_scaled_high2, dtype=torch.float32)
+    with torch.no_grad():
+        output = model(customer_tensor_high2)
+        churn_prob_high2 = torch.sigmoid(output).item() if input_dim > 19 else output.item()
+    print("=" * 70)
+    print("CUSTOMER 3: HIGH-RISK #2 (Month-to-Month Contract)")
+    print("=" * 70)
+    print(f"Tenure: 3 months | Monthly Charges: $95 | Total Charges: $285")
+    print(f"Services: Internet only | Month-to-month contract (no commitment)")
+    print(f"Contract Type: Month-to-Month (high flexibility to leave)")
+    print(f"Churn probability: {churn_prob_high2:.2%}")
+    print(f"Status: ⚠️  AT RISK - Easy to switch providers\n")
 
-# High-risk customer #3 (no internet service extras, paperless billing)
-customer_data_high3 = pd.DataFrame([[1, 0, 5, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 1, 2, 88.0, 440.0]],
+    # High-risk customer #3 (no internet service extras, paperless billing)
+    customer_data_high3 = pd.DataFrame([[1, 0, 5, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 1, 2, 88.0, 440.0]],
                               columns=['gender','SeniorCitizen','Partner','Dependents','tenure','PhoneService','MultipleLines','InternetService','OnlineSecurity','OnlineBackup','DeviceProtection','TechSupport','StreamingTV','StreamingMovies','Contract','PaperlessBilling','PaymentMethod','MonthlyCharges','TotalCharges'])
 
-customer_data_scaled_high3 = scaler.transform(add_engineered_features(customer_data_high3))
-customer_tensor_high3 = torch.tensor(customer_data_scaled_high3, dtype=torch.float32)
-with torch.no_grad():
-    output = model(customer_tensor_high3)
-    churn_prob_high3 = torch.sigmoid(output).item() if input_dim > 19 else output.item()
-print("=" * 70)
-print("CUSTOMER 4: HIGH-RISK #3 (Low Engagement - No Add-ons)")
-print("=" * 70)
-print(f"Tenure: 5 months | Monthly Charges: $88 | Total Charges: $440")
-print(f"Services: Internet + Phone only (no security, backup, tech support)")
-print(f"No additional services despite 5 months tenure")
-print(f"Churn probability: {churn_prob_high3:.2%}")
-print(f"Status: ⚠️  AT RISK - Low engagement\n")
+    customer_data_scaled_high3 = scaler.transform(add_engineered_features(customer_data_high3))
+    customer_tensor_high3 = torch.tensor(customer_data_scaled_high3, dtype=torch.float32)
+    with torch.no_grad():
+        output = model(customer_tensor_high3)
+        churn_prob_high3 = torch.sigmoid(output).item() if input_dim > 19 else output.item()
+    print("=" * 70)
+    print("CUSTOMER 4: HIGH-RISK #3 (Low Engagement - No Add-ons)")
+    print("=" * 70)
+    print(f"Tenure: 5 months | Monthly Charges: $88 | Total Charges: $440")
+    print(f"Services: Internet + Phone only (no security, backup, tech support)")
+    print(f"No additional services despite 5 months tenure")
+    print(f"Churn probability: {churn_prob_high3:.2%}")
+    print(f"Status: ⚠️  AT RISK - Low engagement\n")
 
-# High-risk customer #4 (fiber optic, high charges, minimal tenure)
-customer_data_high4 = pd.DataFrame([[0, 0, 1, 0, 0, 1, 0, 2, 0, 0, 0, 0, 0, 0, 0, 0, 5, 115.0, 115.0]],
+    # High-risk customer #4 (fiber optic, high charges, minimal tenure)
+    customer_data_high4 = pd.DataFrame([[0, 0, 1, 0, 0, 1, 0, 2, 0, 0, 0, 0, 0, 0, 0, 0, 5, 115.0, 115.0]],
                               columns=['gender','SeniorCitizen','Partner','Dependents','tenure','PhoneService','MultipleLines','InternetService','OnlineSecurity','OnlineBackup','DeviceProtection','TechSupport','StreamingTV','StreamingMovies','Contract','PaperlessBilling','PaymentMethod','MonthlyCharges','TotalCharges'])
 
-customer_data_scaled_high4 = scaler.transform(add_engineered_features(customer_data_high4))
-customer_tensor_high4 = torch.tensor(customer_data_scaled_high4, dtype=torch.float32)
-with torch.no_grad():
-    output = model(customer_tensor_high4)
-    churn_prob_high4 = torch.sigmoid(output).item() if input_dim > 19 else output.item()
-print("=" * 70)
-print("CUSTOMER 5: HIGH-RISK #4 (Very New - Highest Charges)")
-print("=" * 70)
-print(f"Tenure: 1 month | Monthly Charges: $115 | Total Charges: $115")
-print(f"Services: Phone + Fiber Internet (premium service)")
-print(f"Fiber optic (premium but may be dissatisfied with speed/quality)")
-print(f"Churn probability: {churn_prob_high4:.2%}")
-print(f"Status: ⚠️  CRITICAL RISK - Brand new customer with high bill\n")
+    customer_data_scaled_high4 = scaler.transform(add_engineered_features(customer_data_high4))
+    customer_tensor_high4 = torch.tensor(customer_data_scaled_high4, dtype=torch.float32)
+    with torch.no_grad():
+        output = model(customer_tensor_high4)
+        churn_prob_high4 = torch.sigmoid(output).item() if input_dim > 19 else output.item()
+    print("=" * 70)
+    print("CUSTOMER 5: HIGH-RISK #4 (Very New - Highest Charges)")
+    print("=" * 70)
+    print(f"Tenure: 1 month | Monthly Charges: $115 | Total Charges: $115")
+    print(f"Services: Phone + Fiber Internet (premium service)")
+    print(f"Fiber optic (premium but may be dissatisfied with speed/quality)")
+    print(f"Churn probability: {churn_prob_high4:.2%}")
+    print(f"Status: ⚠️  CRITICAL RISK - Brand new customer with high bill\n")
 
-# RETENTION INSIGHTS SYSTEM - AI-Powered Recommendations for Agents
-high_risk_customers = [
-    {"name": "Customer 2", "data": customer_data_high1, "prob": churn_prob_high1},
-    {"name": "Customer 3", "data": customer_data_high2, "prob": churn_prob_high2},
-    {"name": "Customer 4", "data": customer_data_high3, "prob": churn_prob_high3},
-    {"name": "Customer 5", "data": customer_data_high4, "prob": churn_prob_high4}
-]
+    # RETENTION INSIGHTS SYSTEM - AI-Powered Recommendations for Agents
+    high_risk_customers = [
+        {"name": "Customer 2", "data": customer_data_high1, "prob": churn_prob_high1},
+        {"name": "Customer 3", "data": customer_data_high2, "prob": churn_prob_high2},
+        {"name": "Customer 4", "data": customer_data_high3, "prob": churn_prob_high3},
+        {"name": "Customer 5", "data": customer_data_high4, "prob": churn_prob_high4}
+    ]
 
-print("\n" + "=" * 70)
-print("AI-POWERED RETENTION INSIGHTS SYSTEM")
-print("Generating Actionable Recommendations for Customer Service Agents")
-print("=" * 70)
-print("\nThis system uses AI to analyze customer data and provide:")
-print("✓ Churn risk assessment and urgency levels")
-print("✓ Specific risk factors identified from customer behavior")
-print("✓ Prioritized actionable recommendations with expected outcomes")
-print("✓ Pre-scripted talking points for agent conversations")
-print("✓ Primary retention offers tailored to each customer")
+    print("\n" + "=" * 70)
+    print("AI-POWERED RETENTION INSIGHTS SYSTEM")
+    print("Generating Actionable Recommendations for Customer Service Agents")
+    print("=" * 70)
+    print("\nThis system uses AI to analyze customer data and provide:")
+    print("✓ Churn risk assessment and urgency levels")
+    print("✓ Specific risk factors identified from customer behavior")
+    print("✓ Prioritized actionable recommendations with expected outcomes")
+    print("✓ Pre-scripted talking points for agent conversations")
+    print("✓ Primary retention offers tailored to each customer")
 
-# Process all high-risk customers
-for customer in high_risk_customers:
-    display_retention_insights(customer["name"], customer["data"], customer["prob"])
-    
-    # Add a separator for readability
-    if customer != high_risk_customers[-1]:
-        print("\n" + "-" * 70)
-        input("\nPress Enter to view next customer insights...")
+    # Process all high-risk customers
+    for customer in high_risk_customers:
+        display_retention_insights(customer["name"], customer["data"], customer["prob"])
+        
+        # Add a separator for readability
+        if customer != high_risk_customers[-1]:
+            print("\n" + "-" * 70)
+            input("\nPress Enter to view next customer insights...")
 
-print("\n" + "=" * 70)
-print("RETENTION INSIGHTS SUMMARY")
-print("=" * 70)
+    print("\n" + "=" * 70)
+    print("RETENTION INSIGHTS SUMMARY")
+    print("=" * 70)
 
-# Generate summary statistics
-critical_count = sum(1 for c in high_risk_customers if c["prob"] > 0.7)
-high_count = sum(1 for c in high_risk_customers if 0.5 < c["prob"] <= 0.7)
-total_revenue_at_risk = sum(
-    extract_customer_profile(c["data"])['monthly_charges'] * 36 
-    for c in high_risk_customers
-)
+    # Generate summary statistics
+    critical_count = sum(1 for c in high_risk_customers if c["prob"] > 0.7)
+    high_count = sum(1 for c in high_risk_customers if 0.5 < c["prob"] <= 0.7)
+    total_revenue_at_risk = sum(
+        extract_customer_profile(c["data"])['monthly_charges'] * 36 
+        for c in high_risk_customers
+    )
 
-print(f"\n📊 SUMMARY:")
-print(f"   Total Customers Analyzed: {len(high_risk_customers)}")
-print(f"   🔴 Critical Risk: {critical_count} customers")
-print(f"   🟠 High Risk: {high_count} customers")
-print(f"   💰 Total Revenue at Risk (3-year): ${total_revenue_at_risk:.2f}")
-print(f"   📞 Immediate Actions Required: {critical_count}")
-print(f"\n✅ All retention insights generated successfully!")
-print(f"   Agents can now contact customers with personalized offers.")
+    print(f"\n📊 SUMMARY:")
+    print(f"   Total Customers Analyzed: {len(high_risk_customers)}")
+    print(f"   🔴 Critical Risk: {critical_count} customers")
+    print(f"   🟠 High Risk: {high_count} customers")
+    print(f"   💰 Total Revenue at Risk (3-year): ${total_revenue_at_risk:.2f}")
+    print(f"   📞 Immediate Actions Required: {critical_count}")
+    print(f"\n✅ All retention insights generated successfully!")
+    print(f"   Agents can now contact customers with personalized offers.")
 
-print("\n" + "=" * 70)
+    print("\n" + "=" * 70)
 
 def main_menu():
     """Interactive main menu for the retention system."""
