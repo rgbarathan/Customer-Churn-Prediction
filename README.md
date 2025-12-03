@@ -397,10 +397,25 @@ Enter your choice (1-4): _
 ---### Interactive Menu Options
 ```
 1. Analyze Single Customer (by ID) - Get complete retention playbook
-2. Generate High-Risk Customer Report - Bulk analysis with CSV export
+2. Generate High-Risk Customer Report - Bulk analysis with preset risk levels
 3. Run Demo (5 Test Customers) - See all features in action
 4. Exit
 ```
+
+### High-Risk Report (Option 2) - Improved User Experience
+```
+📊 Select risk threshold:
+   1. 🔴 Critical Only (70%+) - Immediate action required (~341 customers)
+   2. 🟠 High Risk (60%+) - Proactive outreach recommended (~599 customers) [DEFAULT]
+   3. 🟡 Medium Risk (50%+) - Broader prevention strategy (~1,200 customers)
+   4. 🟢 All At-Risk (30%+) - Early intervention & campaigns (~2,500 customers)
+
+Select option (1-4, default=2): _
+```
+- ✅ **Easy preset choices** instead of typing decimal thresholds
+- ✅ **Visual indicators** with color-coded emojis (🔴🟠🟡🟢)
+- ✅ **Clear context** showing estimated customer counts for each level
+- ✅ **Smart default** (60%) balances urgency with volume
 
 ### Expected Output
 ```
@@ -715,6 +730,8 @@ CLOSE (10-15 min):
 ✅ **Sentiment Monitoring**: Keyword watchlists + de-escalation protocols (67% fewer escalations)  
 ✅ **Time-Sensitive Urgency**: 48-hour offers + follow-up schedules (17% conversion boost)  
 ✅ **Risk-Based Actions**: Targeted interventions by risk level  
+✅ **Improved UX**: Preset risk threshold choices with visual indicators (🔴🟠🟡🟢)  
+✅ **Fixed Demo Mode**: Option 3 now fully functional with proper indentation  
 ✅ **Production-Ready**: Model persistence, error handling, 100% deterministic  
 ✅ **Explainable**: Clear churn factors and recommendations  
 ✅ **Scalable**: 1,000+ customers per second  
@@ -795,12 +812,15 @@ Customer #2: 65.76% Churn Risk
 
 ## 🚀 Future Enhancements
 
-**✅ Recently Completed:**
+**✅ Recently Completed (December 2025):**
 - [x] Feature engineering (23 features from 19 original)
 - [x] Class imbalance handling (2.77x weight for churn class)
 - [x] Recall optimization (80.16% recall achieved)
 - [x] 6 advanced agent guidance features (conversation playbooks, objection handling, win-back probability, channel optimization, sentiment monitoring, urgency tactics)
 - [x] Complete agent empowerment system (88.4% empowerment score)
+- [x] **Fixed demo mode indentation** - Option 3 now works correctly
+- [x] **Improved high-risk report UX** - Preset threshold choices with visual indicators
+- [x] **Added verification scripts** - test_demo_option.py and verify_menu_options.py
 
 **Short-term (Next Sprint)**:
 - [ ] Add REST API for real-time predictions
@@ -991,6 +1011,29 @@ python churn_prediction.py
 df = pd.read_csv('WA_Fn-UseC_-Telco-Customer-Churn.csv', encoding='utf-8')
 ```
 
+#### **Issue 11: Demo mode (option 3) not working or runs immediately** ✅ FIXED
+**Status:** This issue has been fixed in the latest version!
+**Previous Problem:** Demo code was not properly indented inside the function.
+**Solution Applied:** All demo code is now properly indented inside `run_demo()` function.
+```bash
+# To verify the fix:
+python3 verify_menu_options.py
+# Should show: "✓ TEST 1: Demo Mode (Option 3) - Status: WORKING"
+```
+
+#### **Issue 12: High-risk report threshold prompt confusing**  ✅ IMPROVED
+**Status:** This has been improved with preset choices!
+**Previous Problem:** Users had to type decimal values (0.5, 0.7, etc.)
+**Solution Applied:** Now shows 4 easy preset options with visual indicators:
+```
+📊 Select risk threshold:
+   1. 🔴 Critical Only (70%+)
+   2. 🟠 High Risk (60%+) [DEFAULT]
+   3. 🟡 Medium Risk (50%+)
+   4. 🟢 All At-Risk (30%+)
+```
+Just type 1, 2, 3, or 4 (or press Enter for default)!
+
 ### Still Having Issues?
 
 1. **Check Python version**: `python --version` (must be 3.8+)
@@ -1060,6 +1103,12 @@ This project integrates:
 
 This system demonstrates how **predictive analytics** and **conversational AI** can be combined to create intelligent business solutions. By identifying at-risk customers and engaging them with personalized, AI-generated responses, companies can dramatically improve retention rates and customer satisfaction.
 
+**Recent Improvements (December 2025):**
+- ✅ Fixed demo mode (option 3) - Proper function indentation
+- ✅ Improved high-risk report (option 2) - Preset threshold choices with emojis
+- ✅ Enhanced user experience - Visual indicators and clear context
+- ✅ Added verification tools - Scripts to test all functionality
+
 **Status**: ✅ **PRODUCTION READY**
 
-Last Updated: December 1, 2025
+Last Updated: December 3, 2025

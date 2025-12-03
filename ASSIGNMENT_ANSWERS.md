@@ -1018,9 +1018,20 @@ The classification model identifies WHO needs help (1,498 at-risk customers annu
 
 This end-to-end solution transforms customer service from reactive support into proactive, confident, data-driven retention management with complete agent empowerment.
 
+**Recent System Improvements (December 2025):**
+- **Fixed Demo Mode (Option 3):** Resolved indentation issue in `run_demo()` function - all 5 test customers now display correctly when selected from menu
+- **Enhanced High-Risk Report (Option 2):** Replaced text input threshold with intuitive preset choices:
+  - 🔴 Critical Only (70%+) - ~341 customers
+  - 🟠 High Risk (60%+) - ~599 customers [DEFAULT]
+  - 🟡 Medium Risk (50%+) - ~1,200 customers
+  - 🟢 All At-Risk (30%+) - ~2,500 customers
+- **Improved User Experience:** Added visual indicators (color-coded emojis) and clear context for each risk level
+- **Added Verification Tools:** Created `test_demo_option.py` and `verify_menu_options.py` for system validation
+- **All Menu Options Functional:** Verified all 3 main options work correctly (single customer, high-risk report, demo)
+
 ---
 
-**Date:** December 2, 2024  
+**Date:** December 3, 2025  
 **Project:** Customer Churn Prediction & Advanced Agent Empowerment System  
 **Course:** Assignment 5 - AI Application Demo  
 **GitHub:** https://github.com/rgbarathan/Customer-Churn-Prediction
