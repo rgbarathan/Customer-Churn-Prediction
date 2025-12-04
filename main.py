@@ -5,6 +5,9 @@ from churn_prediction import ChurnModel
 import os
 import pickle
 import sys
+from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score, confusion_matrix, roc_auc_score, classification_report
+from sklearn.preprocessing import LabelEncoder
+import numpy as np
 
 # Create models directory if it doesn't exist
 os.makedirs('models', exist_ok=True)
@@ -31,6 +34,477 @@ model.eval()
 print("✓ Loaded churn prediction model")
 print(f"✓ Model expects {input_dim} input features")
 print("✓ Initialized retention recommendation engine")
+
+def evaluate_model_performance():
+    """Evaluate model performance on the test dataset and display comprehensive metrics."""
+    print("\n" + "="*70)
+    print("MODEL EVALUATION METRICS")
+    print("="*70)
+    
+    try:
+        # Load the full dataset
+        df = pd.read_csv('WA_Fn-UseC_-Telco-Customer-Churn.csv')
+        print(f"\n📊 Dataset loaded: {len(df)} customers")
+        
+        # Store original labels before encoding
+        original_labels = df['Churn'].copy()
+        
+        # Prepare data (same as training)
+        df_encoded = df.drop(columns=['customerID', 'Churn'], errors='ignore')
+        
+        # Encode categorical columns
+        for col in df_encoded.select_dtypes(include=['object']).columns:
+            df_encoded[col] = LabelEncoder().fit_transform(df_encoded[col])
+        
+        df_encoded['TotalCharges'] = pd.to_numeric(df_encoded['TotalCharges'], errors='coerce')
+        df_encoded.fillna(0, inplace=True)
+        
+        # Add engineered features
+        df_encoded = add_engineered_features(df_encoded)
+        
+        # Encode labels
+        y_true = LabelEncoder().fit_transform(original_labels)
+        
+        # Scale and predict
+        X_scaled = scaler.transform(df_encoded)
+        X_tensor = torch.tensor(X_scaled, dtype=torch.float32)
+        
+        print("🔄 Running predictions on all customers...")
+        with torch.no_grad():
+            outputs = model(X_tensor)
+            probs = torch.sigmoid(outputs).numpy().flatten()
+            predictions = (probs > 0.5).astype(int)
+        
+        # Calculate comprehensive metrics
+        accuracy = accuracy_score(y_true, predictions)
+        precision = precision_score(y_true, predictions, zero_division=0)
+        recall = recall_score(y_true, predictions, zero_division=0)
+        f1 = f1_score(y_true, predictions, zero_division=0)
+        roc_auc = roc_auc_score(y_true, probs)
+        
+        # Confusion matrix
+        cm = confusion_matrix(y_true, predictions)
+        tn, fp, fn, tp = cm.ravel()
+        
+        # Additional metrics
+        specificity = tn / (tn + fp) if (tn + fp) > 0 else 0
+        npv = tn / (tn + fn) if (tn + fn) > 0 else 0  # Negative Predictive Value
+        fpr = fp / (fp + tn) if (fp + tn) > 0 else 0  # False Positive Rate
+        fnr = fn / (fn + tp) if (fn + tp) > 0 else 0  # False Negative Rate
+        
+        # Display metrics
+        print("\n" + "="*70)
+        print("📈 CLASSIFICATION METRICS")
+        print("="*70)
+        print(f"\n✓ Accuracy:           {accuracy:.4f} ({accuracy*100:.2f}%)")
+        print(f"  └─ Correct predictions out of all predictions")
+        print(f"\n✓ Precision:          {precision:.4f} ({precision*100:.2f}%)")
+        print(f"  └─ Of predicted churns, how many actually churned")
+        print(f"\n✓ Recall (Sensitivity): {recall:.4f} ({recall*100:.2f}%)")
+        print(f"  └─ Of actual churns, how many we correctly identified")
+        print(f"\n✓ F1-Score:           {f1:.4f} ({f1*100:.2f}%)")
+        print(f"  └─ Harmonic mean of precision and recall")
+        print(f"\n✓ ROC-AUC Score:      {roc_auc:.4f} ({roc_auc*100:.2f}%)")
+        print(f"  └─ Area under ROC curve (model's discriminative ability)")
+        print(f"\n✓ Specificity:        {specificity:.4f} ({specificity*100:.2f}%)")
+        print(f"  └─ Of actual non-churns, how many we correctly identified")
+        
+        print("\n" + "="*70)
+        print("📊 CONFUSION MATRIX")
+        print("="*70)
+        print(f"\n                    Predicted")
+        print(f"                No Churn  |  Churn")
+        print(f"             ─────────────┼─────────────")
+        print(f"   No Churn  │    {tn:5d}     │   {fp:5d}    │ {tn+fp:5d}")
+        print(f"Actual       │             │             │")
+        print(f"   Churn     │    {fn:5d}     │   {tp:5d}    │ {fn+tp:5d}")
+        print(f"             ─────────────┼─────────────")
+        print(f"             │   {tn+fn:5d}     │  {fp+tp:5d}    │ {len(y_true):5d}")
+        
+        print(f"\n   True Negatives (TN):  {tn:5d} - Correctly predicted non-churn")
+        print(f"   False Positives (FP): {fp:5d} - Incorrectly predicted churn")
+        print(f"   False Negatives (FN): {fn:5d} - Missed actual churns (⚠️ COSTLY)")
+        print(f"   True Positives (TP):  {tp:5d} - Correctly predicted churn")
+        
+        print("\n" + "="*70)
+        print("📉 ERROR ANALYSIS")
+        print("="*70)
+        print(f"\n✓ False Positive Rate:  {fpr:.4f} ({fpr*100:.2f}%)")
+        print(f"  └─ Non-churns incorrectly flagged as churn risk")
+        print(f"\n✓ False Negative Rate:  {fnr:.4f} ({fnr*100:.2f}%)")
+        print(f"  └─ Churns we failed to identify (⚠️ Most costly error)")
+        print(f"\n✓ Negative Predictive Value: {npv:.4f} ({npv*100:.2f}%)")
+        print(f"  └─ When we predict no churn, how often we're correct")
+        
+        # Business impact analysis
+        print("\n" + "="*70)
+        print("💰 BUSINESS IMPACT ANALYSIS")
+        print("="*70)
+        
+        # Calculate average customer value from dataset
+        avg_monthly = df['MonthlyCharges'].mean()
+        avg_ltv = avg_monthly * 36  # 3-year lifetime value
+        
+        print(f"\n📊 Customer Economics:")
+        print(f"   Average Monthly Charges: ${avg_monthly:.2f}")
+        print(f"   Estimated 3-Year LTV:    ${avg_ltv:.2f}")
+        
+        print(f"\n🎯 Model Performance Impact:")
+        print(f"   Correctly Identified Churners (TP):     {tp:5d} customers")
+        print(f"   └─ Potential savings: ${tp * avg_ltv:,.2f}")
+        print(f"   └─ (If retention efforts are successful)")
+        
+        print(f"\n⚠️  Missed Churners (FN):                 {fn:5d} customers")
+        print(f"   └─ Potential lost revenue: ${fn * avg_ltv:,.2f}")
+        print(f"   └─ (Customers we failed to identify)")
+        
+        print(f"\n💸 False Alarms (FP):                    {fp:5d} customers")
+        print(f"   └─ Unnecessary retention costs")
+        print(f"   └─ (Offered discounts to non-churners)")
+        
+        # Calculate churn distribution
+        churn_count = y_true.sum()
+        no_churn_count = len(y_true) - churn_count
+        
+        print("\n" + "="*70)
+        print("📊 DATASET DISTRIBUTION")
+        print("="*70)
+        print(f"\n   Total Customers:     {len(y_true):5d}")
+        print(f"   Churned:             {churn_count:5d} ({churn_count/len(y_true)*100:.2f}%)")
+        print(f"   Not Churned:         {no_churn_count:5d} ({no_churn_count/len(y_true)*100:.2f}%)")
+        print(f"   Class Imbalance:     {no_churn_count/churn_count:.2f}:1 (non-churn:churn)")
+        
+        # Prediction distribution
+        pred_churn = predictions.sum()
+        pred_no_churn = len(predictions) - pred_churn
+        print(f"\n   Predicted Churners:  {pred_churn:5d} ({pred_churn/len(predictions)*100:.2f}%)")
+        print(f"   Predicted Stable:    {pred_no_churn:5d} ({pred_no_churn/len(predictions)*100:.2f}%)")
+        
+        # Risk categories analysis
+        print("\n" + "="*70)
+        print("🎯 RISK STRATIFICATION ANALYSIS")
+        print("="*70)
+        
+        critical_risk = (probs > 0.7).sum()
+        high_risk = ((probs > 0.5) & (probs <= 0.7)).sum()
+        medium_risk = ((probs > 0.3) & (probs <= 0.5)).sum()
+        low_risk = (probs <= 0.3).sum()
+        
+        print(f"\n   🔴 Critical Risk (>70%):     {critical_risk:5d} customers ({critical_risk/len(probs)*100:.2f}%)")
+        print(f"   🟠 High Risk (50-70%):       {high_risk:5d} customers ({high_risk/len(probs)*100:.2f}%)")
+        print(f"   🟡 Medium Risk (30-50%):     {medium_risk:5d} customers ({medium_risk/len(probs)*100:.2f}%)")
+        print(f"   🟢 Low Risk (<30%):          {low_risk:5d} customers ({low_risk/len(probs)*100:.2f}%)")
+        
+        print("\n" + "="*70)
+        print("📋 DETAILED CLASSIFICATION REPORT")
+        print("="*70)
+        print("\n" + classification_report(y_true, predictions, target_names=['No Churn', 'Churn'], digits=4))
+        
+        print("\n" + "="*70)
+        print("✅ MODEL EVALUATION COMPLETE")
+        print("="*70)
+        
+        # Summary interpretation
+        print("\n💡 KEY TAKEAWAYS:")
+        if accuracy > 0.8:
+            print("   ✓ Model shows strong overall accuracy")
+        else:
+            print("   ⚠️ Model accuracy could be improved")
+            
+        if recall > 0.7:
+            print("   ✓ Good at identifying actual churners (high recall)")
+        else:
+            print("   ⚠️ Missing too many actual churners (low recall)")
+            
+        if precision > 0.7:
+            print("   ✓ Predictions are reliable (high precision)")
+        else:
+            print("   ⚠️ Too many false alarms (low precision)")
+            
+        if f1 > 0.7:
+            print("   ✓ Well-balanced model (good F1-score)")
+        else:
+            print("   ⚠️ Consider rebalancing precision and recall")
+        
+        print("\n")
+        
+    except FileNotFoundError:
+        print("\n❌ Error: Dataset file 'WA_Fn-UseC_-Telco-Customer-Churn.csv' not found!")
+        print("Please ensure the dataset is in the current directory.")
+    except Exception as e:
+        print(f"\n❌ Error during evaluation: {str(e)}")
+        import traceback
+        traceback.print_exc()
+
+def evaluate_recommendations_quality():
+    """Evaluate the quality and effectiveness of retention recommendations."""
+    print("\n" + "="*70)
+    print("RECOMMENDATION SYSTEM EVALUATION")
+    print("="*70)
+    
+    try:
+        # Load dataset
+        df = load_dataset()
+        if df is None:
+            return
+        
+        print(f"\n🔄 Analyzing recommendation system on {len(df)} customers...")
+        
+        # Prepare data
+        df_original = df.copy()
+        df_encoded = df.drop(columns=['customerID', 'Churn'], errors='ignore')
+        
+        # Encode categorical columns
+        from sklearn.preprocessing import LabelEncoder
+        for col in df_encoded.select_dtypes(include=['object']).columns:
+            df_encoded[col] = LabelEncoder().fit_transform(df_encoded[col])
+        
+        df_encoded['TotalCharges'] = pd.to_numeric(df_encoded['TotalCharges'], errors='coerce')
+        df_encoded.fillna(0, inplace=True)
+        
+        # Predict for all customers
+        df_encoded_enhanced = add_engineered_features(df_encoded)
+        scaled_data = scaler.transform(df_encoded_enhanced)
+        tensor_data = torch.tensor(scaled_data, dtype=torch.float32)
+        
+        with torch.no_grad():
+            outputs = model(tensor_data)
+            if input_dim > 19:
+                churn_probs = torch.sigmoid(outputs).numpy().flatten()
+            else:
+                churn_probs = outputs.numpy().flatten()
+        
+        # Focus on high-risk customers (>50% churn probability)
+        high_risk_mask = churn_probs >= 0.5
+        high_risk_count = high_risk_mask.sum()
+        
+        print(f"✓ Found {high_risk_count} high-risk customers (≥50% churn probability)")
+        
+        # Analyze recommendations for a sample of high-risk customers
+        sample_size = min(100, high_risk_count)
+        high_risk_indices = np.where(high_risk_mask)[0]
+        sample_indices = np.random.choice(high_risk_indices, sample_size, replace=False)
+        
+        print(f"✓ Evaluating recommendations for {sample_size} sample customers...\n")
+        
+        # Metrics to collect
+        recommendation_counts = []
+        priority_distributions = []
+        risk_factor_counts = []
+        coverage_scores = []
+        expected_success_rates = []
+        recommendation_types = {
+            'pricing': 0,
+            'contract': 0,
+            'service': 0,
+            'loyalty': 0,
+            'engagement': 0
+        }
+        
+        for idx in sample_indices:
+            # Get customer data
+            customer_data = df_encoded.iloc[[idx]]
+            churn_prob = churn_probs[idx]
+            
+            # Generate recommendations
+            profile = extract_customer_profile(customer_data)
+            risk_factors = identify_risk_factors(profile, churn_prob)
+            recommendations = generate_recommendations(profile, risk_factors, churn_prob)
+            winback = calculate_winback_probability(profile, churn_prob)
+            
+            # Collect metrics
+            recommendation_counts.append(len(recommendations))
+            risk_factor_counts.append(len(risk_factors))
+            
+            # Priority distribution
+            priorities = [rec['priority'] for rec in recommendations]
+            priority_distributions.extend(priorities)
+            
+            # Coverage: how many risk factors have corresponding recommendations
+            coverage = min(1.0, len(recommendations) / max(1, len(risk_factors)))
+            coverage_scores.append(coverage)
+            
+            # Expected success rate
+            expected_success_rates.append(winback['probability'])
+            
+            # Categorize recommendations
+            for rec in recommendations:
+                action = rec['action'].lower()
+                if 'cost' in action or 'discount' in action or 'price' in action or 'charge' in action:
+                    recommendation_types['pricing'] += 1
+                elif 'contract' in action or 'commitment' in action:
+                    recommendation_types['contract'] += 1
+                elif 'service' in action or 'bundle' in action or 'add-on' in action:
+                    recommendation_types['service'] += 1
+                elif 'loyalty' in action or 'reward' in action or 'tenure' in action:
+                    recommendation_types['loyalty'] += 1
+                else:
+                    recommendation_types['engagement'] += 1
+        
+        # Calculate aggregate metrics
+        avg_recommendations = np.mean(recommendation_counts)
+        avg_risk_factors = np.mean(risk_factor_counts)
+        avg_coverage = np.mean(coverage_scores)
+        avg_success_rate = np.mean(expected_success_rates)
+        
+        # Display results
+        print("="*70)
+        print("📊 RECOMMENDATION SYSTEM METRICS")
+        print("="*70)
+        
+        print(f"\n📋 RECOMMENDATION GENERATION:")
+        print(f"   Average Recommendations per Customer:  {avg_recommendations:.2f}")
+        print(f"   Average Risk Factors per Customer:     {avg_risk_factors:.2f}")
+        print(f"   Min Recommendations:                   {min(recommendation_counts)}")
+        print(f"   Max Recommendations:                   {max(recommendation_counts)}")
+        
+        print(f"\n🎯 COVERAGE ANALYSIS:")
+        print(f"   Average Coverage Score:                {avg_coverage:.2%}")
+        print(f"   └─ How well recommendations address all risk factors")
+        perfect_coverage = sum(1 for c in coverage_scores if c >= 1.0)
+        print(f"   Perfect Coverage (100%):               {perfect_coverage}/{sample_size} customers ({perfect_coverage/sample_size*100:.1f}%)")
+        
+        print(f"\n✨ RECOMMENDATION QUALITY:")
+        priority_1 = priority_distributions.count(1)
+        priority_2 = priority_distributions.count(2)
+        priority_3 = priority_distributions.count(3)
+        total_recs = len(priority_distributions)
+        
+        print(f"   Priority 1 (Critical):                 {priority_1}/{total_recs} ({priority_1/total_recs*100:.1f}%)")
+        print(f"   Priority 2 (High):                     {priority_2}/{total_recs} ({priority_2/total_recs*100:.1f}%)")
+        print(f"   Priority 3 (Medium):                   {priority_3}/{total_recs} ({priority_3/total_recs*100:.1f}%)")
+        
+        print(f"\n📈 EXPECTED SUCCESS RATE:")
+        print(f"   Average Win-Back Probability:          {avg_success_rate:.2%}")
+        high_success = sum(1 for s in expected_success_rates if s > 0.7)
+        medium_success = sum(1 for s in expected_success_rates if 0.4 < s <= 0.7)
+        low_success = sum(1 for s in expected_success_rates if s <= 0.4)
+        print(f"   High Success Rate (>70%):              {high_success}/{sample_size} ({high_success/sample_size*100:.1f}%)")
+        print(f"   Medium Success Rate (40-70%):          {medium_success}/{sample_size} ({medium_success/sample_size*100:.1f}%)")
+        print(f"   Low Success Rate (<40%):               {low_success}/{sample_size} ({low_success/sample_size*100:.1f}%)")
+        
+        print(f"\n🎨 RECOMMENDATION DIVERSITY:")
+        total_type_recs = sum(recommendation_types.values())
+        print(f"   Pricing/Discount Offers:               {recommendation_types['pricing']:3d} ({recommendation_types['pricing']/total_type_recs*100:.1f}%)")
+        print(f"   Contract/Commitment Offers:            {recommendation_types['contract']:3d} ({recommendation_types['contract']/total_type_recs*100:.1f}%)")
+        print(f"   Service/Bundle Upgrades:               {recommendation_types['service']:3d} ({recommendation_types['service']/total_type_recs*100:.1f}%)")
+        print(f"   Loyalty Rewards:                       {recommendation_types['loyalty']:3d} ({recommendation_types['loyalty']/total_type_recs*100:.1f}%)")
+        print(f"   Engagement/Other:                      {recommendation_types['engagement']:3d} ({recommendation_types['engagement']/total_type_recs*100:.1f}%)")
+        
+        # Calculate diversity score (Shannon entropy)
+        from math import log
+        diversity_score = 0
+        for count in recommendation_types.values():
+            if count > 0:
+                p = count / total_type_recs
+                diversity_score -= p * log(p)
+        max_diversity = log(len(recommendation_types))
+        normalized_diversity = diversity_score / max_diversity
+        
+        print(f"\n   Diversity Score:                       {normalized_diversity:.2%}")
+        print(f"   └─ Higher is better (more balanced recommendation types)")
+        
+        # Business impact simulation
+        print("\n" + "="*70)
+        print("💰 PROJECTED BUSINESS IMPACT")
+        print("="*70)
+        
+        avg_monthly = df['MonthlyCharges'].mean()
+        avg_ltv = avg_monthly * 36
+        
+        # Calculate potential savings
+        total_at_risk = high_risk_count
+        total_ltv_at_risk = total_at_risk * avg_ltv
+        expected_saved = total_at_risk * avg_success_rate
+        expected_revenue_saved = expected_saved * avg_ltv
+        
+        print(f"\n📊 Retention Opportunity:")
+        print(f"   Customers at High Risk:                {total_at_risk:,}")
+        print(f"   Total LTV at Risk:                     ${total_ltv_at_risk:,.2f}")
+        print(f"   Expected Customers Saved:              {expected_saved:.0f}")
+        print(f"   Expected Revenue Saved:                ${expected_revenue_saved:,.2f}")
+        print(f"   Success Rate:                          {avg_success_rate:.2%}")
+        
+        # Cost-benefit analysis
+        avg_incentive_cost = 200  # Estimated average cost per retention offer
+        total_incentive_cost = total_at_risk * avg_incentive_cost
+        net_benefit = expected_revenue_saved - total_incentive_cost
+        roi = (net_benefit / total_incentive_cost) * 100 if total_incentive_cost > 0 else 0
+        
+        print(f"\n💵 Cost-Benefit Analysis:")
+        print(f"   Estimated Retention Costs:             ${total_incentive_cost:,.2f}")
+        print(f"   └─ (${avg_incentive_cost} avg per customer)")
+        print(f"   Expected Revenue Saved:                ${expected_revenue_saved:,.2f}")
+        print(f"   Net Benefit:                           ${net_benefit:,.2f}")
+        print(f"   Return on Investment (ROI):            {roi:.1f}%")
+        
+        # Recommendation system performance summary
+        print("\n" + "="*70)
+        print("✅ RECOMMENDATION SYSTEM ASSESSMENT")
+        print("="*70)
+        
+        print("\n💡 KEY FINDINGS:")
+        
+        if avg_coverage >= 0.9:
+            print("   ✓ Excellent coverage - recommendations address most risk factors")
+        elif avg_coverage >= 0.7:
+            print("   ✓ Good coverage - most risk factors have recommendations")
+        else:
+            print("   ⚠️ Coverage could be improved - some risk factors not addressed")
+        
+        if normalized_diversity >= 0.7:
+            print("   ✓ Good diversity - varied recommendation strategies")
+        else:
+            print("   ⚠️ Low diversity - recommendations too similar")
+        
+        if avg_success_rate >= 0.6:
+            print("   ✓ High expected success rate - strong retention potential")
+        elif avg_success_rate >= 0.4:
+            print("   ✓ Moderate success rate - reasonable retention outcomes")
+        else:
+            print("   ⚠️ Low success rate - may need strategy adjustment")
+        
+        if roi > 100:
+            print("   ✓ Excellent ROI - highly cost-effective recommendations")
+        elif roi > 0:
+            print("   ✓ Positive ROI - recommendations are profitable")
+        else:
+            print("   ⚠️ Negative ROI - need to optimize costs")
+        
+        if priority_1/total_recs >= 0.3:
+            print("   ✓ Good prioritization - critical actions highlighted")
+        else:
+            print("   ⚠️ Weak prioritization - unclear action urgency")
+        
+        # Specific recommendations for improvement
+        print("\n🔧 RECOMMENDATIONS FOR SYSTEM IMPROVEMENT:")
+        
+        improvements = []
+        if avg_coverage < 0.8:
+            improvements.append("   • Increase recommendation coverage to address all risk factors")
+        if normalized_diversity < 0.6:
+            improvements.append("   • Diversify recommendation strategies across categories")
+        if avg_success_rate < 0.5:
+            improvements.append("   • Adjust win-back probability calculations")
+        if recommendation_types['pricing'] / total_type_recs > 0.5:
+            improvements.append("   • Reduce over-reliance on pricing discounts")
+        if avg_recommendations < 3:
+            improvements.append("   • Generate more recommendations per customer")
+        
+        if improvements:
+            for imp in improvements:
+                print(imp)
+        else:
+            print("   ✓ System is performing well - no critical improvements needed")
+        
+        print("\n" + "="*70)
+        print("✅ RECOMMENDATION EVALUATION COMPLETE")
+        print("="*70 + "\n")
+        
+    except Exception as e:
+        print(f"\n❌ Error during recommendation evaluation: {str(e)}")
+        import traceback
+        traceback.print_exc()
 
 def add_engineered_features(customer_data):
     """Add engineered features to customer data."""
@@ -874,9 +1348,9 @@ def analyze_high_risk_customers():
         print(f"✅ Report saved to: {filename}")
 
 def run_demo():
-    """Run the demo with 5 test customers."""
+    """Run the demo with 3 test customers."""
     print("\n" + "="*70)
-    print("DEMO MODE - 5 TEST CUSTOMERS")
+    print("DEMO MODE - 3 TEST CUSTOMERS")
     print("="*70)
 
     # Example combined workflow
@@ -935,48 +1409,10 @@ def run_demo():
     print(f"Churn probability: {churn_prob_high2:.2%}")
     print(f"Status: ⚠️  AT RISK - Easy to switch providers\n")
 
-    # High-risk customer #3 (no internet service extras, paperless billing)
-    customer_data_high3 = pd.DataFrame([[1, 0, 5, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 1, 2, 88.0, 440.0]],
-                              columns=['gender','SeniorCitizen','Partner','Dependents','tenure','PhoneService','MultipleLines','InternetService','OnlineSecurity','OnlineBackup','DeviceProtection','TechSupport','StreamingTV','StreamingMovies','Contract','PaperlessBilling','PaymentMethod','MonthlyCharges','TotalCharges'])
-
-    customer_data_scaled_high3 = scaler.transform(add_engineered_features(customer_data_high3))
-    customer_tensor_high3 = torch.tensor(customer_data_scaled_high3, dtype=torch.float32)
-    with torch.no_grad():
-        output = model(customer_tensor_high3)
-        churn_prob_high3 = torch.sigmoid(output).item() if input_dim > 19 else output.item()
-    print("=" * 70)
-    print("CUSTOMER 4: HIGH-RISK #3 (Low Engagement - No Add-ons)")
-    print("=" * 70)
-    print(f"Tenure: 5 months | Monthly Charges: $88 | Total Charges: $440")
-    print(f"Services: Internet + Phone only (no security, backup, tech support)")
-    print(f"No additional services despite 5 months tenure")
-    print(f"Churn probability: {churn_prob_high3:.2%}")
-    print(f"Status: ⚠️  AT RISK - Low engagement\n")
-
-    # High-risk customer #4 (fiber optic, high charges, minimal tenure)
-    customer_data_high4 = pd.DataFrame([[0, 0, 1, 0, 0, 1, 0, 2, 0, 0, 0, 0, 0, 0, 0, 0, 5, 115.0, 115.0]],
-                              columns=['gender','SeniorCitizen','Partner','Dependents','tenure','PhoneService','MultipleLines','InternetService','OnlineSecurity','OnlineBackup','DeviceProtection','TechSupport','StreamingTV','StreamingMovies','Contract','PaperlessBilling','PaymentMethod','MonthlyCharges','TotalCharges'])
-
-    customer_data_scaled_high4 = scaler.transform(add_engineered_features(customer_data_high4))
-    customer_tensor_high4 = torch.tensor(customer_data_scaled_high4, dtype=torch.float32)
-    with torch.no_grad():
-        output = model(customer_tensor_high4)
-        churn_prob_high4 = torch.sigmoid(output).item() if input_dim > 19 else output.item()
-    print("=" * 70)
-    print("CUSTOMER 5: HIGH-RISK #4 (Very New - Highest Charges)")
-    print("=" * 70)
-    print(f"Tenure: 1 month | Monthly Charges: $115 | Total Charges: $115")
-    print(f"Services: Phone + Fiber Internet (premium service)")
-    print(f"Fiber optic (premium but may be dissatisfied with speed/quality)")
-    print(f"Churn probability: {churn_prob_high4:.2%}")
-    print(f"Status: ⚠️  CRITICAL RISK - Brand new customer with high bill\n")
-
     # RETENTION INSIGHTS SYSTEM - AI-Powered Recommendations for Agents
     high_risk_customers = [
         {"name": "Customer 2", "data": customer_data_high1, "prob": churn_prob_high1},
-        {"name": "Customer 3", "data": customer_data_high2, "prob": churn_prob_high2},
-        {"name": "Customer 4", "data": customer_data_high3, "prob": churn_prob_high3},
-        {"name": "Customer 5", "data": customer_data_high4, "prob": churn_prob_high4}
+        {"name": "Customer 3", "data": customer_data_high2, "prob": churn_prob_high2}
     ]
 
     print("\n" + "=" * 70)
@@ -1029,24 +1465,30 @@ def main_menu():
         print("CUSTOMER CHURN PREDICTION & RETENTION SYSTEM")
         print("="*70)
         print("\n📋 MAIN MENU:")
-        print("   1. Analyze Single Customer (by ID)")
-        print("   2. Generate High-Risk Customer Report")
-        print("   3. Run Demo (5 Test Customers)")
-        print("   4. Exit")
+        print("   1. 📊 Churn Prediction Model - Evaluation Metrics")
+        print("   2. 🎯 Evaluate Recommendation System Quality")
+        print("   3. 🔍 Analyze Single Customer (by ID)")
+        print("   4. 📈 Generate High-Risk Customer Report")
+        print("   5. 🎬 Run Demo (3 Test Customers)")
+        print("   6. 🚪 Exit")
         
-        choice = input("\nSelect an option (1-4): ").strip()
+        choice = input("\nSelect an option (1-6): ").strip()
         
         if choice == '1':
-            analyze_single_customer()
+            evaluate_model_performance()
         elif choice == '2':
-            analyze_high_risk_customers()
+            evaluate_recommendations_quality()
         elif choice == '3':
-            run_demo()
+            analyze_single_customer()
         elif choice == '4':
+            analyze_high_risk_customers()
+        elif choice == '5':
+            run_demo()
+        elif choice == '6':
             print("\n✅ Thank you for using the Retention System. Goodbye!")
             break
         else:
-            print("\n❌ Invalid choice. Please select 1-4.")
+            print("\n❌ Invalid choice. Please select 1-6.")
 
 # Check if running in interactive mode or demo mode
 if __name__ == "__main__":
@@ -1060,7 +1502,7 @@ if __name__ == "__main__":
     else:
         # Default: run demo then show menu
         print("\n" + "="*70)
-        print("Running in DEMO MODE (showing 5 test customers)")
+        print("Running in DEMO MODE (showing 3 test customers)")
         print("Use '--menu' argument to skip demo and go straight to menu")
         print("="*70)
         input("\nPress Enter to continue...")
