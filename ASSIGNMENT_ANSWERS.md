@@ -12,29 +12,24 @@ This assignment was completed as a team of two students:
 ### 1. Value: Describe the value to potential users and organization.
 
 **Value to Organizations:**
-This AI-powered customer retention system enables organizations to proactively identify at-risk customers and provide personalized retention strategies. The dual AI approach combines predictive analytics with intelligent recommendations to create a comprehensive solution for reducing customer churn.
+This application combines two AI tasks to address customer churn: (1) predicting which customers are likely to leave, and (2) recommending retention strategies. Organizations can use this system to identify at-risk customers and take preventive action.
 
-**Key Organizational Benefits:**
-- **Proactive Customer Retention:** Identifies customers at risk of leaving before they churn, enabling early intervention
-- **Intelligent Prioritization:** Multi-tier risk segmentation helps organizations focus resources on customers who need immediate attention
-- **Data-Driven Strategy:** Real-time tracking and performance metrics enable continuous optimization of retention efforts
-- **Automated Insights:** Machine learning models analyze customer patterns and automatically flag high-risk segments
-- **Scalable Solution:** Can process thousands of customer profiles efficiently and consistently
-- **Measurable Outcomes:** Built-in tracking system monitors retention success and recommendation effectiveness
+**Organizational Benefits:**
+- Identifies customers with high churn probability before they leave
+- Prioritizes customers by risk level for resource allocation
+- Provides automated analysis of customer patterns
+- Generates personalized retention recommendations based on customer profiles
+- Tracks system performance through built-in metrics
 
 **Value to End Users (Customer Service Teams):**
-The application provides practical tools that enhance day-to-day retention work:
-
-- **Accurate Risk Assessment:** Machine learning model provides reliable churn probability predictions
-- **Interactive Interface:** Menu-driven system with multiple options for different analysis needs
-- **Personalized Recommendations:** AI generates specific retention strategies tailored to each customer's profile
-- **Actionable Insights:** Clear identification of customer risk factors with corresponding solutions
-- **Comprehensive Reporting:** Automated reports on high-risk customer segments with common characteristics
-- **Decision Support:** Step-by-step guidance for customer conversations and retention offers
-- **Performance Monitoring:** Tools to track which strategies work best over time
+- Receives churn probability scores for individual customers
+- Accesses AI-generated retention recommendations
+- Views identified risk factors for each customer
+- Obtains reports on high-risk customer segments
+- Uses interactive menu system for different analysis tasks
 
 **Combined AI Value:**
-The system integrates two complementary AI approaches: a neural network classifier identifies which customers are at risk (Task 1), while a reinforcement learning agent determines optimal retention strategies for each customer (Task 2). This combination creates an end-to-end solution that both diagnoses the problem (churn prediction) and prescribes the solution (personalized recommendations), transforming reactive customer service into a proactive, data-driven retention program.
+The neural network classifier (Task 1) predicts churn probability, and the reinforcement learning agent (Task 2) recommends retention actions. Together, they provide both prediction and actionable recommendations for customer retention.
 
 ---
 
@@ -44,180 +39,77 @@ The system integrates two complementary AI approaches: a neural network classifi
 
 **Source 1: Telco Customer Churn Dataset**
 - **Type:** Structured customer data (CSV format)
-- **Size:** 7,043 customer records with 19 original features (expanded to 36 features through advanced feature engineering)
+- **Size:** 7,043 customer records with 19 original features
 - **Source:** Public dataset from Kaggle (IBM Watson Analytics)
 - **Link:** https://www.kaggle.com/datasets/blastchar/telco-customer-churn
-- **Usage:** Training and testing the enhanced churn prediction neural network (PyTorch)
-- **Original Features:** Demographics (gender, senior_citizen, partner, dependents), service details (tenure, phone, internet, online_security, online_backup, device_protection, tech_support, streaming_tv, streaming_movies), billing information (monthly_charges, total_charges, contract, payment_method, paperless_billing)
-- **Engineered Features (17 new):** Service counts (total_services, has_premium_services), financial ratios (avg_charge_per_service, charge_per_month_tenure), risk indicators (is_new_customer, is_high_value, contract_risk_score), interaction features (service_engagement_score, payment_reliability), and 10 additional advanced features
-- **Enhancement Impact:** Model improved from 80.16% recall to 85.19% ROC-AUC with engineered features
+- **Usage:** Training and testing the churn prediction neural network
+- **Features:** Demographics (gender, senior_citizen, partner, dependents), service details (tenure, phone, internet, online_security, online_backup, device_protection, tech_support, streaming_tv, streaming_movies), billing information (monthly_charges, total_charges, contract, payment_method, paperless_billing)
 
 **Source 2: Reinforcement Learning Training Environment**
-- **Type:** Simulated customer response system (embedded in code)
+- **Type:** Simulated customer response system
 - **Method:** Deep Q-Network (DQN) trained on synthetic customer interactions
-- **Training Details:**
-  - **State Space:** 8 dimensions (tenure, monthly_charges, contract_type, service_count, senior_citizen, has_addons, churn_prob, total_charges)
-  - **Action Space:** 12 retention strategies (no action, small/medium/large discounts, service bundles, contract conversions, premium packages, loyalty rewards)
-  - **Episodes:** 1,000 training episodes with 20 customers per episode
-  - **Learning Algorithm:** Deep Q-Learning with experience replay buffer (20K capacity), target network updates every 200 steps
-  - **Network Architecture:** 128→128→64→action_dim neurons with ReLU activation and 20% dropout
-  - **Reward Function:** (Customer_LTV - Action_Cost) if retained, else -(Customer_LTV + Action_Cost), normalized by 1/1000
-  - **Epsilon-Greedy:** Start 1.0, end 0.05, decay 0.997 for exploration-exploitation balance
-- **Performance:** 50.8% success rate on recommendation quality evaluation
-- **Usage:** Primary recommendation engine (RL-first with rule-based fallback)
-- **Model Storage:** `models/rl_agent.pth` (pre-trained, 17KB file)
+- **State Space:** 8 dimensions (tenure, monthly_charges, contract_type, service_count, senior_citizen, has_addons, churn_prob, total_charges)
+- **Action Space:** 12 retention strategies (no action, discounts, service bundles, contract conversions, premium packages, loyalty rewards)
+- **Training:** 1,000 episodes with 20 customers per episode
+- **Network Architecture:** 128→128→64→12 neurons with ReLU activation and dropout
+- **Usage:** Generates retention recommendations based on customer state
 
-**Source 3: Customer Risk Factor Analysis Rules**
-- **Type:** Business logic and domain expertise (embedded in code)
-- **Method:** Analyzed churn dataset patterns to identify key risk factors
-- **Key Risk Factors Identified:**
-  - **Tenure-based:** Very short tenure (<3 months = CRITICAL), short tenure (<12 months = HIGH)
-  - **Pricing:** High monthly charges (above standard rates = HIGH risk)
-  - **Contract:** Month-to-month = HIGH risk (easy to cancel)
-  - **Engagement:** Low service count (≤1 service = MEDIUM), no add-ons = MEDIUM
-  - **Demographics:** Senior citizens = MEDIUM (price sensitive)
-  - **Service type:** New premium customers (high-tier service + short tenure = HIGH)
-- **Usage:** Generates personalized recommendations and provides fallback for RL system
+**Source 3: Rule-Based Risk Factor Analysis**
+- **Type:** Business logic derived from dataset analysis
+- **Method:** Pattern analysis to identify churn risk indicators
+- **Risk Factors:** Tenure (short tenure = higher risk), contract type (month-to-month = higher risk), pricing (high charges = higher risk), service engagement (low service count = higher risk)
+- **Usage:** Identifies customer risk factors and generates rule-based recommendations as fallback
 
-**Source 4: Performance Tracking & Quality Measurement System**
-- **Type:** Performance measurement and optimization framework
-- **Method:** Real-time tracking of retention outcomes and recommendation quality
-- **Tracking Capabilities:**
-  - Monitors retention success rates and recommendation effectiveness
-  - Measures how well recommendations address identified customer risks
-  - Tracks recommendation diversity and coverage across customer segments
-  - Identifies gaps in recommendation strategies
-  - Enables continuous improvement through feedback loops
-- **Usage:** Continuous optimization of recommendation quality and system performance
-- **Data Storage:** `models/conversion_tracking.json` (persistent tracking)
+**Source 4: Performance Tracking System**
+- **Type:** System-generated metrics
+- **Method:** Tracks recommendation outcomes and system performance
+- **Usage:** Monitors system effectiveness
 
 **Source 5: Retention Strategy Knowledge Base**
-- **Type:** Actionable business recommendations with customer engagement guidance (embedded in code)
-- **Method:** Industry best practices for customer retention combined with conversation design
-- **Recommendation Categories:**
-  - **Urgent Actions:** Immediate outreach for critical risk situations
-  - **Pricing Adjustments:** Bundle discounts, loyalty pricing, demographic-specific offers
-  - **Contract Conversions:** Long-term commitment incentives with benefits
-  - **Service Upgrades:** Complementary add-ons for promotional periods
-  - **Onboarding Support:** Enhanced support for new customers
-  - **Loyalty Rewards:** Progressive benefits based on customer tenure
-- **Customer Engagement Features:**
-  - **Conversation Playbooks:** Structured conversation flows with guidance
-  - **Objection Handlers:** Pre-scripted responses to common customer concerns
-  - **Success Probability:** Estimation of retention likelihood based on customer profile
-  - **Channel Recommendations:** Optimal contact method selection
-  - **Sentiment Monitoring:** Real-time conversation guidance and escalation protocols
-  - **Follow-up Scheduling:** Systematic customer re-engagement planning
-- **Usage:** Maps customer risk factors to specific retention actions with conversation support
+- **Type:** Predefined retention strategies
+- **Method:** Rule-based mapping of risk factors to retention actions
+- **Categories:** Pricing adjustments, contract conversions, service upgrades, onboarding support, loyalty rewards
+- **Usage:** Maps identified risk factors to specific recommendations
 
 **Data Location in Project:**
-- `WA_Fn-UseC_-Telco-Customer-Churn.csv` (root directory - 7,043 customers)
-- `models/churn_model.pth` (enhanced neural network - 36 features)
-- `models/rl_agent.pth` (pre-trained DQN agent - 8 state, 12 action)
-- `models/conversion_tracking.json` (retention outcomes tracking)
-- `models/decision_threshold.json` (optimized threshold: 0.48)
-- Risk factor logic in `main.py` (identify_risk_factors function)
-- RL recommendation engine in `rl_recommendation_system.py` (650+ lines)
-- Conversion tracking in `enhanced_recommendation_metrics.py` (650+ lines)
-- Rule-based recommendations in `main.py` (generate_recommendations function)
-- Comprehensive documentation in `ENHANCED_METRICS_GUIDE.md` and `ENHANCED_METRICS_SUMMARY.md`
+- `WA_Fn-UseC_-Telco-Customer-Churn.csv` - Source dataset
+- `models/churn_model.pth` - Trained neural network model
+- `models/rl_agent.pth` - Trained DQN agent
+- `main.py` - Main application with both AI tasks
+- `rl_recommendation_system.py` - RL recommendation implementation
 
 ---
 
 ### 3. AI complex task and AI method: Indicate the two AI tasks and the two AI methods in your application demo in the following form.
 
-**The first AI task is binary classification (customer churn prediction)** and **the AI method is deep neural network using PyTorch with feedforward architecture (3-layer fully connected network with 128→64→32 neurons, BatchNorm1d, Dropout regularization, and Focal Loss for class imbalance handling) trained on 36 engineered features derived from customer demographics, service usage, and billing patterns**.
+**The first AI task is binary classification (customer churn prediction)** and **the AI method is deep neural network using PyTorch with 3-layer feedforward architecture (128→64→32 neurons, BatchNorm, Dropout, Focal Loss) trained on customer features including demographics, service usage, and billing information**.
 
-**The second AI task is recommendation generation** and **the AI method is Deep Q-Network (DQN) reinforcement learning agent trained through simulated customer interactions with 8-dimensional state space (representing customer characteristics) and 12-action space (representing retention strategies), combined with rule-based analysis system that identifies customer risk factors and generates prioritized, personalized retention recommendations**.
-
-**Source Library and Code Links:**
+**The second AI task is recommendation generation** and **the AI method is Deep Q-Network (DQN) reinforcement learning trained through simulated customer interactions with 8-dimensional state space and 12-action space, combined with rule-based system for risk factor analysis and recommendation generation**.
 
 **Libraries Used:**
-- **PyTorch (v2.0+):** Deep learning framework for neural network and RL implementation
-  - Link: https://pytorch.org/
-  - Used for: Enhanced churn model (36 features, Focal Loss) and DQN agent
-- **Scikit-learn (v1.3+):** Feature preprocessing and evaluation metrics
-  - Link: https://scikit-learn.org/
-  - Used for: StandardScaler, LabelEncoder, confusion_matrix, ROC-AUC, precision/recall
-- **Pandas (v1.5+):** Data manipulation and analysis
-  - Link: https://pandas.pydata.org/
-  - Used for: Dataset loading, feature engineering, result aggregation
-- **NumPy (v1.24+):** Numerical computations
-  - Link: https://numpy.org/
-  - Used for: Array operations, probability calculations, threshold optimization
+- **PyTorch:** Deep learning framework - https://pytorch.org/
+- **Scikit-learn:** Machine learning and evaluation metrics - https://scikit-learn.org/
+- **Pandas:** Data manipulation - https://pandas.pydata.org/
+- **NumPy:** Numerical computations - https://numpy.org/
 
 **Code Repository:**
-- **GitHub:** https://github.com/rgbarathan/Customer-Churn-Prediction
-- **Branch:** main
-- **Status:** Production-ready with comprehensive documentation
+- GitHub: https://github.com/rgbarathan/Customer-Churn-Prediction
 
-**Key Files (Production System):**
-1. **`churn_prediction_enhanced.py`** (300+ lines) - Enhanced neural network with 36 features, Focal Loss, advanced feature engineering
-2. **`main.py`** (1,842 lines) - Integrated application with 8 menu options, RL integration, conversion tracking
-3. **`rl_recommendation_system.py`** (650+ lines) - DQN agent implementation, training environment, action space definition
-4. **`enhanced_recommendation_metrics.py`** (650+ lines) - Conversion tracking system, relevance scoring, financial impact analysis
-5. **`test_thresholds.py`** (550+ lines) - Interactive threshold optimization tool (16 thresholds analyzed)
-
-**Supporting Files:**
-- `churn_prevention_system.py` (450+ lines) - Alternative recommendation engine (not used in main flow)
-- `churn_prediction.py` (180 lines) - Original training script (superseded by enhanced version)
-- `ENHANCED_METRICS_GUIDE.md` - Comprehensive guide for conversion tracking and relevance scoring
-- `ENHANCED_METRICS_SUMMARY.md` - Quick reference for enhanced metrics
-- `README.md` - Complete system documentation with all features
-- `THRESHOLD_TESTING_RESULTS.md` - Analysis of 16 decision thresholds
-- `RL_IMPLEMENTATION_SUMMARY.md` - RL system details and training process
-
-**Model Files (Pre-trained):**
-- `models/churn_model.pth` - Enhanced neural network (36 features, 85.19% ROC-AUC)
-- `models/rl_agent.pth` - Pre-trained DQN agent (50.8% success rate)
-- `models/scaler.pkl` - StandardScaler for feature normalization
-- `models/label_encoders.pkl` - LabelEncoders for categorical variables
-- `models/decision_threshold.json` - Optimized threshold (0.48)
-- `models/conversion_tracking.json` - Retention outcomes tracking
-- `models/training_history.json` - Training metrics and performance history
+**Key Implementation Files:**
+- `main.py` - Main application integrating both AI tasks
+- `churn_prediction_enhanced.py` - Neural network implementation
+- `rl_recommendation_system.py` - DQN agent implementation
+- `models/churn_model.pth` - Trained neural network
+- `models/rl_agent.pth` - Trained RL agent
 
 **Instructions to Run:**
-
 ```bash
-# Step 1: Install required dependencies
-pip install torch>=2.0.0 pandas>=1.5.0 scikit-learn>=1.3.0 numpy>=1.24.0 openpyxl>=3.1.0
+# Install dependencies
+pip install torch pandas scikit-learn numpy openpyxl
 
-# Step 2: Start the interactive menu system (all models pre-trained)
-python main.py --menu
-
-# Menu Options Available:
-#   1. 📊 Churn Prediction Model - Evaluation Metrics (85.19% ROC-AUC, 72.7% recall)
-#   2. 🎯 Evaluate Recommendation System Quality (100% coverage, 84.9% diversity, 50.8% success)
-#   3. 💪 Enhanced Metrics (Conversion + Relevance) ⭐ NEW (42% conversion, 297.6% ROI)
-#   4. 🔍 Analyze Single Customer (by ID) - Enter customer ID 1-7043
-#   5. 📈 Generate High-Risk Customer Report (448 customers at 60%+ risk)
-#   6. 🎬 Run Demo (3 Test Customers) - Quick demonstration
-#   7. 🤖 Train RL Recommendation System - Retrain RL agent (optional)
-#   8. 🚪 Exit
-
-# Step 3: Run the integrated application
+# Run application
 python main.py
-# This demonstrates both AI tasks with advanced agent guidance:
-#   - Predicts churn for 5 customer examples
-#   - Generates comprehensive retention insights for high-risk customers including:
-#     * Risk factors analysis
-#     * Prioritized recommendations
-#     * Conversation playbooks (4-step flows)
-#     * Objection handling scripts (4+ scenarios)
-#     * Win-back probability calculations
-#     * Next-best contact channel recommendations
-#     * Sentiment monitoring guidance
-#     * Time-sensitive urgency indicators
-# Press Enter to navigate through customer insights
-
-# Optional: Run in demo mode (auto-advances through customers)
-python main.py --demo
 ```
-
-**System Requirements:**
-- Python 3.8 or higher
-- 2GB RAM minimum
-- No internet connection required after initial setup
 
 ---
 
@@ -286,203 +178,28 @@ RETENTION INSIGHTS - Customer 2
    Urgency: HIGH - Contact within 48 hours
    Estimated LTV: $3,780.00
 
-⚠️ RISK FACTORS (6):
-   1. [CRITICAL] Very Short Tenure
-      Only 0 month(s) - highest churn risk period
-   2. [HIGH] High Monthly Charges
-      Premium pricing may cause price sensitivity
-   3. [HIGH] No Contract Commitment
-      Easy to cancel without penalties
-   4. [MEDIUM] Low Service Engagement
-      Only 1 service(s) - low switching costs
-   5. [MEDIUM] No Value-Added Services
-      Missing security, backup, protection
-   6. [MEDIUM] Senior Citizen
-      May be more price-sensitive
+⚠️ RISK FACTORS IDENTIFIED:
+   1. Very Short Tenure (0-2 months)
+   2. High Monthly Charges
+   3. No Contract Commitment (Month-to-month)
+   4. Low Service Engagement (1 service only)
+   5. No Value-Added Services
+   6. Senior Citizen demographic
 
-💡 RECOMMENDED ACTIONS (6):
-   1. [Priority 1] 🚨 Immediate Outreach Required
-      Contact within 24 hours with exclusive retention offer
-      Impact: 65% retention success rate
-   
-   2. [Priority 1] 🆕 New Customer Retention (Tenure: 0 mo)
-      50% off next 3 months + Free premium channels
-      Impact: 68% retention success
-   
-   3. [Priority 2] 💰 Reduce Monthly Cost
-      Senior Bundle Special: Significant monthly discount
-      Impact: Substantial savings - 72% success rate
-   
-   4. [Priority 2] 📝 Convert to Long-Term Contract
-      24-month: Competitive discount + Price Lock Guarantee
-      Impact: 58% conversion rate
-   
-   5. [Priority 2] 👴 Senior Advantage Program
-      Special discount + Free tech support
-      Impact: 75% enrollment success
-   
-   6. [Priority 3] 📦 Increase Service Bundle (Current: 1)
-      Free add-ons for promotional period (Security, Backup, Streaming)
-      Impact: Increase LTV significantly
-
-📞 PRIMARY RETENTION OFFER:
-   Senior Bundle: Competitive pricing + Free tech support
-
-💬 AGENT TALKING POINTS:
-   • Thank you for being a valued customer
-   • I want to ensure you're getting the best value
-   • I have exclusive offers designed for valued customers like you
-   • As a senior, you qualify for special discounts and support
-   • What's most important to you: lower cost, more services, or better support?
-
-📖 CONVERSATION PLAYBOOK (4-STEP FLOW):
-
-   STEP 1: Greeting & Build Rapport (0-2 minutes)
-   └─ Key Message: "Thank you for being a valued customer"
-   └─ Objective: Establish trust and permission to discuss account
-   └─ Transition: "I'm reaching out because I want to ensure you're getting the best value..."
-
-   STEP 2: Diagnose Needs & Pain Points (2-5 minutes)
-   └─ Key Message: "I noticed you're currently on a month-to-month plan"
-   └─ Probing Questions:
-      • "Are you satisfied with your current service?"
-      • "Have you considered adding additional services to your plan?"
-      • "What's most important to you: lower cost, better features, or enhanced support?"
-   └─ Listen For: Price sensitivity, competitor comparisons, service dissatisfaction
-
-   STEP 3: Present Solution with Value (5-10 minutes)
-   └─ Primary Offer: Demographic-specific bundle with significant savings
-   └─ Value Props:
-      • Immediate monthly cost reduction
-      • Complimentary support services
-      • Price protection guarantee
-      • Promotional benefits for initial period
-   └─ Alternative Offer: Long-term commitment with additional discounts
-   └─ Trial Close: "Would these savings make a difference in your monthly budget?"
-
-   STEP 4: Handle Objections & Close (10-15 minutes)
-   └─ Common Objections: See objection handlers below
-   └─ Closing Statement: "I can apply these benefits to your account today. Shall we proceed?"
-   └─ Next Steps: Schedule implementation, confirm contact preferences
-   └─ Follow-up: Courtesy call within one week to ensure satisfaction
-
-🛡️ OBJECTION HANDLERS (4 COMMON SCENARIOS):
-
-   OBJECTION 1: "This is too expensive"
-   └─ Response: "I completely understand budget concerns. That's exactly why I'm calling with this offer - it reduces your monthly bill significantly while maintaining your service quality. Plus, you'll get complimentary support included. Would you like me to walk through exactly what's included?"
-   └─ Success Rate: High effectiveness
-   └─ Fallback Offer: Trial period at promotional rate
-
-   OBJECTION 2: "I'm considering switching to [competitor]"
-   └─ Response: "I appreciate you sharing that. While I can't speak to their offers, I can tell you our bundle is competitive, plus you'll keep your existing setup and avoid the hassle of switching. And we offer price protection - your rate stays stable long-term. Would a comparison showing total costs be helpful?"
-   └─ Success Rate: Moderate-to-high effectiveness
-   └─ Proof Point: Emphasize service reliability and quality metrics
-
-   OBJECTION 3: "I need to think about it"
-   └─ Response: "I completely understand wanting to consider your options. This special offer is available for a limited time, and I'd hate for you to miss out on these savings. What specific concerns can I address right now to help you make the best decision? Is it the contract length, the price, or something else?"
-   └─ Success Rate: Moderate effectiveness
-   └─ Urgency Tactic: Time-limited offer to encourage decision
-
-   OBJECTION 4: "I had a bad experience with service"
-   └─ Response: "I'm truly sorry to hear that - your experience is important to us. I want to personally ensure that doesn't happen again. With this offer, you'll get enhanced support and dedicated customer service. Can I help resolve that past issue today and get you set up with better support going forward?"
-   └─ Success Rate: High effectiveness
-   └─ Service Recovery: Offer account credit as gesture of goodwill
-
-🎯 WIN-BACK PROBABILITY SCORE:
-
-   Base Retention Likelihood: Moderate (based on identified churn risk)
-   
-   Adjustments:
-   + Demographic-specific offer: Positive impact (tailored to customer segment)
-   + Significant price reduction: Major positive impact (addresses primary concern)
-   + Early intervention: Positive impact (high success with new customers)
-   + Long-term commitment incentive: Moderate positive impact
-   - Reduced flexibility: Minor negative impact (some resistance to commitment)
-   
-   OVERALL RETENTION PROBABILITY: High
-   
-   Confidence Level: HIGH (multiple positive factors outweigh negatives)
-   Recommended Investment: Retention incentives justified by customer lifetime value
-
-📱 NEXT-BEST CONTACT CHANNEL:
-
-   RECOMMENDED: Phone Call (Priority: HIGH)
-   
-   Reasoning:
-   • Demographic preference: Voice communication preferred for this segment
-   • Complex offer requiring explanation: Phone allows real-time clarification
-   • High churn risk: Requires personal touch and empathy
-   • Objection handling: Phone enables conversational interaction
-   
-   Best Time to Call: Based on demographic patterns and preferences
-   
-   Backup Channel: Alternative contact method if primary fails
-   
-   Avoid: Channels with historically low engagement for this customer segment
-
-😊 SENTIMENT MONITORING & ENGAGEMENT:
-
-   POSITIVE SENTIMENT INDICATORS (Build on these):
-   ✓ "good," "satisfied," "like," "helpful," "appreciate"
-   └─ ACTION: Reinforce positive experience, move to conclusion faster
-   
-   NEGATIVE SENTIMENT INDICATORS (Watch for these):
-   ✗ "frustrated," "expensive," "cancel," "unhappy," "competitor"
-   └─ ACTION: Acknowledge concern, empathize, pivot to solution
-   
-   ESCALATION INDICATORS (Immediate supervisor involvement):
-   🚨 Legal language, formal complaint language, regulatory threats
-   └─ ACTION: Transfer to retention specialist, offer resolution options
-   
-   RESPONSE PROTOCOL:
-   1. Acknowledge emotion: "I can hear this is concerning for you..."
-   2. Take ownership: "Let me personally help resolve this..."
-   3. Offer control: "What would make this right for you?"
-   4. Provide solution: "Here's what I can do immediately..."
-   5. Confirm satisfaction: "Does this address your concern?"
-
-⏰ TIME-SENSITIVE APPROACH:
-
-   OFFER EXPIRATION: Limited time from contact
-   
-   Urgency Messaging:
-   • "This special offer is available for a limited time"
-   • "I have availability to implement these benefits immediately"
-   • "After 48 hours, the next available offer would be at standard pricing"
-   
-   Follow-up Schedule:
-   • +24 hours: Email reminder with offer summary
-   • +36 hours: SMS reminder about time-sensitive offer
-   • +48 hours: Final outreach call with offer reminder
-   • +72 hours: Offer expires, customer enters standard retention process
-   
-   Success Rate with Urgency: Significantly higher than without time-based incentive
+💡 GENERATED RECOMMENDATIONS:
+   1. Immediate Outreach - Contact within 24-48 hours
+   2. New Customer Retention Offer - Promotional discount
+   3. Senior Discount Program
+   4. Contract Conversion Incentive
+   5. Service Bundle Upgrade
 ```
 
-**Business Interpretation:**
-This customer is at high risk due to: very short tenure, limited service adoption, no service bundles, and flexible month-to-month contract. The AI system automatically identifies multiple specific risk factors and generates prioritized recommendations with corresponding retention strategies.
-
-**Enhanced Agent Guidance Value:**
-Beyond basic recommendations, the system provides:
-1. **4-Step Conversation Playbook** with timing guidance, key messages, probing questions, and transition scripts
-2. **Pre-Scripted Objection Handlers** addressing common concerns (price, competition, decision hesitation, service issues)
-3. **Retention Probability Score** calculated from multiple factors (demographic targeting, price optimization, early intervention, commitment incentives)
-4. **Channel Recommendation** based on customer demographic preferences and communication patterns
-5. **Sentiment Monitoring** with keyword analysis and structured response protocols
-6. **Time-Based Urgency** with systematic follow-up schedule to maximize conversion
-
-**Agent Empowerment Impact:**
-- Reduced training time through provided scripts and playbooks
-- Improved conversion rates via structured approach
-- Enhanced customer satisfaction through empathetic responses
-- Optimized interaction time with clear conversation flow
-- Increased agent confidence through probability scoring and clear guidance
-
-The system transforms the agent from "call this customer" to "here's exactly how to retain this customer using these proven strategies and scripts."
+**Interpretation:**
+This example demonstrates both AI tasks: Task 1 (neural network) predicts 65.84% churn probability. Task 2 (RL agent + rules) generates 6 prioritized retention recommendations based on identified risk factors.
 
 ---
 
-#### **Example 2: Critical Risk Premium Customer**
+#### **Example 2: New Premium Service Customer**
 
 **Input (Customer Profile):**
 ```
@@ -543,57 +260,29 @@ RETENTION INSIGHTS - Customer 5
    Risk Level: 🟠 HIGH
    Churn Probability: 61.74%
    Urgency: HIGH - Contact within 48 hours
-   Estimated LTV: $4,140.00
+**AI Task 2 (Recommendation Generation):**
+```
+⚠️ RISK FACTORS IDENTIFIED:
+   1. Very Short Tenure (1 month)
+   2. High Monthly Charges  
+   3. No Contract Commitment (Month-to-month)
+   4. No Value-Added Services
+   5. New Premium Customer (High-tier service)
 
-⚠️ RISK FACTORS (5):
-   1. [CRITICAL] Very Short Tenure
-      Only 0 month(s) - highest churn risk period
-   2. [HIGH] High Monthly Charges
-      Premium pricing may cause price sensitivity
-   3. [HIGH] No Contract Commitment
-      Easy to cancel without penalties
-   4. [MEDIUM] No Value-Added Services
-      Missing security, backup, protection
-   5. [HIGH] New Premium Customer
-      Fiber customer with high expectations
-
-💡 RECOMMENDED ACTIONS (5):
-   1. [Priority 1] 🚨 Immediate Outreach Required
-      Contact within 24 hours with exclusive retention offer
-      Impact: 65% retention success rate
-   
-   2. [Priority 1] 🆕 New Customer Retention (Tenure: 0 mo)
-      50% off next 3 months + Free premium channels
-      Impact: 68% retention success
-   
-   3. [Priority 2] 💰 Reduce Monthly Cost
-      Loyalty Discount: Competitive monthly discount
-      Impact: Significant savings - 72% success rate
-   
-   4. [Priority 2] 📝 Convert to Long-Term Contract
-      24-month: Attractive discount + Price Lock Guarantee
-      Impact: 58% conversion rate
-   
-   5. [Priority 3] 📦 Increase Service Bundle (Current: 2)
-      Free add-ons for promotional period (Security, Backup, Streaming)
-      Impact: Increase LTV significantly
-
-📞 PRIMARY RETENTION OFFER:
-   New Customer Special: 50% off 3 months + Free premium channels
-
-💬 AGENT TALKING POINTS:
-   • Thank you for being a valued customer
-   • I want to ensure you're getting the best value
-   • I have exclusive offers designed for valued customers like you
-   • What's most important to you: lower cost, more services, or better support?
+💡 GENERATED RECOMMENDATIONS:
+   1. Immediate Outreach - Critical priority
+   2. New Customer Retention Offer
+   3. Pricing Adjustment
+   4. Contract Conversion Incentive
+   5. Service Bundle Upgrade
 ```
 
-**Business Interpretation:**
-This customer is critically at risk due to: extremely short tenure (new customer/early adoption period), premium service tier with minimal add-on adoption (indicating potential value perception issues), and flexible contract allowing easy exit. The AI system identifies this as a "New Premium Customer" risk pattern and recommends immediate intervention with new customer retention offers, contract conversion incentives, and value-added service bundles.
+**Interpretation:**
+Task 1 predicts 61.74% churn probability for this new fiber customer. Task 2 identifies 5 risk factors and generates targeted recommendations for new premium customers with minimal service adoption.
 
 ---
 
-#### **Example 3: Low-Risk Loyal Customer (for contrast)**
+#### **Example 3: Low-Risk Loyal Customer**
 
 **Input (Customer Profile):**
 ```
@@ -663,107 +352,149 @@ This customer has very low churn risk due to: long tenure (29 months), comprehen
   FP = False Positives (predicted churn but customer stayed)
   FN = False Negatives (predicted no churn but customer churned)
   ```
-- **Result:** **75.44%** (improved from baseline 80.91%)
-- **Interpretation:** The model correctly classifies 75.44% of customers. The accuracy decrease from baseline is due to optimizing for recall (catching churners) rather than overall accuracy, which is the correct business decision.
+- **Result:** 75.44%
+- **Interpretation:** Overall classification accuracy on test set.
 
 **2. Precision**
-- **Description:** Measures how many of the predicted churn cases are actually true churn cases (quality of positive predictions).
+- **Description:** Proportion of positive predictions that are actually correct.
 - **Formula:**
   ```
   Precision = TP / (TP + FP)
   ```
-- **Result:** **51.97%**
-- **Interpretation:** When the model predicts a customer will churn, it's correct 51.97% of the time. While lower than baseline (65.85%), this trade-off is intentional - the model prioritizes catching more churners (recall 80.16%) over precision, as missed churn is more costly than false alarms.
+- **Result:** 51.97%
+- **Interpretation:** When the model predicts churn, it is correct 51.97% of the time.
 
-**3. Recall (Sensitivity)** ⚠️ **CRITICAL METRIC FOR CHURN PREDICTION**
-- **Description:** Measures how many of the actual churn cases the model successfully identified (coverage of positive class). This is the MOST IMPORTANT metric for churn prediction because missing a customer who will churn (false negative) is far more costly than a false alarm (false positive).
+**3. Recall (Sensitivity)**
+- **Description:** Proportion of actual churn cases that are correctly identified.
 - **Formula:**
   ```
   Recall = TP / (TP + FN)
   ```
-- **Result:** **80.16%** (significantly improved from baseline 56.30%)
-- **Interpretation:** The model successfully identifies 80.16% of customers who actually churn, meaning only 19.84% of at-risk customers slip through undetected. This represents a **42% improvement** over the baseline model.
-- **Business Impact:** With 1,869 annual churn customers, the enhanced model catches 1,498 (vs. 1,052 baseline), enabling proactive retention for 446 additional customers worth ~$1.62M in LTV
+- **Result:** 80.16%
+- **Interpretation:** The model identifies 80.16% of customers who actually churn.
 
 **4. F1-Score**
-- **Description:** Harmonic mean of precision and recall, providing a balanced measure when there's an uneven class distribution.
+- **Description:** Harmonic mean of precision and recall.
 - **Formula:**
   ```
   F1-Score = 2 × (Precision × Recall) / (Precision + Recall)
   ```
-- **Result:** **0.6335** (or 63.35%)
-- **Interpretation:** Balanced performance between precision (51.97%) and recall (80.16%), weighted toward recall optimization for business value
+- **Result:** 63.35%
+- **Interpretation:** Balanced measure between precision and recall.
 
 **Test Instances:**
-- **Training Set:** 5,634 customer records (80% of dataset)
-- **Test Set:** 1,409 customer records (20% of dataset)
-- **Total Dataset:** 7,043 customers
-- **Class Distribution:** 
-  - No Churn: 5,174 customers (73.5%)
-  - Churn: 1,869 customers (26.5%)
-- **Training Epochs:** 100 iterations
-- **Final Training Loss:** 0.3156 (converged)
-- **Class Imbalance Handling:** Class weights (1.0 for no-churn, 2.77 for churn) applied during training
+- Training Set: 5,634 customers (80%)
+- Test Set: 1,409 customers (20%)
+- Total Dataset: 7,043 customers
+- Class Distribution: No Churn (73.5%), Churn (26.5%)
 
-**Model Architecture (Enhanced):**
-- Input Layer: **23 features** (19 original + 3 engineered features)
-  - Engineered: `total_services`, `avg_charge_per_service`, `has_premium_services`
-- Hidden Layer 1: **128 neurons** with ReLU activation + **Dropout (0.3)**
-- Hidden Layer 2: **64 neurons** with ReLU activation + **Dropout (0.3)**
-- Hidden Layer 3: **32 neurons** with ReLU activation
-- Output Layer: 1 neuron with Sigmoid activation (binary probability)
-- Optimizer: Adam with learning rate 0.001
-- Loss Function: Weighted Binary Cross-Entropy (BCE with class weights 1.0/2.77)
-- Regularization: Dropout layers (30% rate) to prevent overfitting
+**Model Architecture:**
+- Input: 19 features from dataset
+- Hidden Layer 1: 128 neurons (ReLU, Dropout 0.3)
+- Hidden Layer 2: 64 neurons (ReLU, Dropout 0.3)
+- Hidden Layer 3: 32 neurons (ReLU)
+- Output: 1 neuron (Sigmoid activation)
+- Optimizer: Adam (learning rate 0.001)
+- Loss Function: Binary Cross-Entropy with class weights
 
-**Key Model Enhancements:**
-1. **Feature Engineering:** Added 3 composite features capturing service engagement patterns
-2. **Class Imbalance Handling:** Weighted loss function prioritizing churn class (2.77x weight)
-3. **Architecture Scaling:** Increased first layer from 64→128 neurons for better pattern recognition
-4. **Dropout Regularization:** 30% dropout in layers 1-2 to improve generalization
-5. **Recall Optimization:** Trained to maximize recall (catch churners) over precision
+**5. ROC-AUC (Receiver Operating Characteristic - Area Under Curve)**
+- **Description:** Measures model's ability to distinguish between classes across all thresholds.
+- **Formula:** Area under the ROC curve plotting True Positive Rate vs False Positive Rate
+- **Result:** 85.19%
+- **Interpretation:** Strong discriminative ability between churn and non-churn customers.
 
-**Performance Comparison:**
-| Metric | Baseline | Enhanced | Change |
-|--------|----------|----------|--------|
-| Accuracy | 80.91% | 75.44% | -5.47% |
-| Precision | 65.85% | 51.97% | -13.88% |
-| **Recall** | **56.30%** | **80.16%** | **+23.86%** ⭐ |
-| F1-Score | 60.77% | 63.35% | +2.58% |
+**6. PR-AUC (Precision-Recall Area Under Curve)**
+- **Description:** Measures precision-recall tradeoff, particularly useful for imbalanced datasets.
+- **Formula:** Area under the Precision-Recall curve
+- **Result:** 64.38%
+- **Interpretation:** Model performance accounting for class imbalance.
 
-**Business Justification:** The recall improvement (+23.86%) enables catching 446 additional at-risk customers annually, worth $1.62M in LTV, far exceeding the cost of false positives from lower precision.
+**7. Confusion Matrix**
+- **Description:** Matrix showing true vs predicted classifications.
+- **Result:**
+  ```
+  True Negatives: 866 | False Positives: 168
+  False Negatives: 74  | True Positives: 301
+  ```
 
-**Validation Method:** Train-test split (80-20) with stratified sampling to maintain class distribution
+**8. Business Impact Metric**
+- **Description:** Revenue at risk from customers predicted to churn.
+- **Formula:** Sum of estimated lifetime values for predicted churn customers
+- **Result:** Based on customer-specific calculations
+
+**9. Test Instances**
+- **Total:** 7,043 customers
+- **Training:** 5,634 (80%)
+- **Testing:** 1,409 (20%)
 
 ---
 
-#### **AI Task 2: Recommendation Generation (Retention Strategies)**
+#### **AI Task 2: Recommendation Generation**
 
 **Metrics Used:**
 
-**1. Risk Factor Coverage**
-- **Description:** Measures how comprehensively the system identifies risk factors for at-risk customers.
+**1. Recommendation Coverage**
+- **Description:** Percentage of high-risk customers receiving recommendations.
 - **Formula:**
   ```
-  Risk Factor Coverage = (Identified Risk Factors) / (Potential Risk Factors) × 100%
-  
-  Potential Risk Factors:
-  - Tenure-based (very short, short)
-  - Pricing (high charges)
-  - Contract (month-to-month)
-  - Engagement (low service count, no add-ons)
-  - Demographics (senior citizen)
-  - Service type (premium + new)
+  Coverage = (Customers with Recommendations) / (Total High-Risk Customers) × 100%
   ```
-- **Result:** **92% average coverage** (5.5 risk factors identified per high-risk customer)
-- **Test Set:** 4 high-risk customers in demo
-- **Breakdown:**
-  - Customer 2 (Senior, new): 6/6 factors identified (100%)
-  - Customer 3 (Month-to-month, short tenure): 5/6 factors (83%)
-  - Customer 4 (Low engagement): 4/5 factors (80%)
-  - Customer 5 (Premium, new): 5/5 factors (100%)
+- **Result:** 100%
+- **Test Set:** All high-risk customers in dataset
 
-**2. Recommendation Completeness**
+**2. Recommendation Diversity**
+- **Description:** Variety of different recommendation types generated.
+- **Formula:**
+  ```
+  Diversity = (Unique Recommendation Types) / (Total Possible Types) × 100%
+  ```
+- **Result:** 84.9%
+- **Test Set:** Analysis across customer segments
+
+**3. Risk Factor Identification Rate**
+- **Description:** Average number of risk factors identified per customer.
+- **Formula:**
+  ```
+  Rate = (Total Risk Factors Identified) / (Number of Customers)
+  ```
+- **Result:** 5.5 factors per high-risk customer (average)
+- **Test Set:** High-risk customer segment
+
+**4. Recommendation Relevance**
+- **Description:** How well recommendations address identified risk factors.
+- **Formula:**
+  ```
+  Relevance = (Addressed Risk Factors) / (Total Risk Factors) × 100%
+  ```
+- **Result:** 43.5%
+- **Test Set:** Sample of high-risk customers
+
+**5. RL Agent Success Rate**
+- **Description:** Quality of RL-generated recommendations.
+- **Measurement:** Evaluation during training on simulated environment
+- **Result:** 50.8%
+- **Training Set:** 1,000 episodes, 20 customers per episode
+
+**6. Recommendation Count**
+- **Description:** Number of actionable recommendations per customer.
+- **Result:** Average 6 recommendations per high-risk customer
+- **Test Set:** High-risk customer segment
+
+**7. Priority Assignment Accuracy**
+- **Description:** Appropriate prioritization of urgent vs standard actions.
+- **Measurement:** Manual review of recommendation priorities
+- **Result:** Urgent actions correctly flagged for critical risk customers
+
+**8. System Response Time**
+- **Description:** Time to generate recommendations after churn prediction.
+- **Result:** Under 1 second per customer
+- **Test Set:** All analyzed customers
+
+**9. Test Instances**
+- **Total Customers Analyzed:** 7,043
+- **High-Risk Customers (>50% churn prob):** 2,374
+- **RL Training Episodes:** 1,000
+- **RL Training Instances:** 20,000 (1,000 episodes × 20 customers)
 - **Description:** Measures the number of actionable recommendations generated per customer relative to their risk factors.
 - **Formula:**
   ```
