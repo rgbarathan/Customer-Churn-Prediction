@@ -1,1114 +1,535 @@
 # 🎯 Customer Churn Prediction & Retention System
 
-A comprehensive machine learning system that **predicts customer churn** and **provides AI-powered retention strategies** using advanced neural networks with class imbalance handling, feature engineering, and intelligent next-best-action guidance for customer service agents.
+A production-ready machine learning system that **predicts customer churn** and **provides AI-powered retention strategies** using advanced neural networks, reinforcement learning, and intelligent recommendation systems with comprehensive evaluation metrics.
 
 ## 📋 Project Overview
 
-**Objective**: Help Comcast identify at-risk customers early and engage them with personalized, AI-generated retention offers using step-by-step agent guidance.
+**Objective**: Help telecommunications companies identify at-risk customers and engage them with personalized, data-driven retention strategies.
 
-**Result**: End-to-end system combining:
-- 🧠 Deep learning churn prediction with **80.16% recall** (catches 8 out of 10 churners!)
-- 🎯 Advanced feature engineering (23 engineered features)
-- ⚖️ Class imbalance handling (weighted loss with pos_weight=2.77)
-- 📊 Risk-based customer segmentation
-- 💬 Interactive CLI for customer analysis
-- 🗣️ **Step-by-step conversation playbook** for agents
-- 🛡️ **Objection handling scripts** with fallback strategies
-- 🎲 **Win-back probability scoring** with authorization levels
-- 📱 **Next-best-contact channel** recommendations
-- 🎭 **Real-time sentiment monitoring** guidance
-- ⏰ **Time-sensitive urgency** (48-hour offer expiration)
+**Key Achievements**:
+- 🧠 **Enhanced Deep Learning Model**: 85.19% ROC-AUC, 72.7% recall, 57.2% precision
+- 🎯 **36 Engineered Features**: Advanced feature engineering with ratios, interactions, and risk indicators
+- 🤖 **RL-Based Recommendations**: DQN agent trained for optimal retention strategies (50.8% success rate)
+- ⚖️ **Optimized Decision Threshold**: 0.48 for balanced precision-recall (64.0% F1-Score)
+- 📊 **Multi-Tier Risk Segmentation**: Critical (70%+), High (60%+), Medium (50%+), Custom thresholds
+- 💪 **Conversion Tracking**: 42% retention rate, 297.6% ROI, $290 average cost per retention
+- 🎯 **Relevance Scoring**: Measures how well recommendations match specific customer risk factors
+- 📈 **Comprehensive Evaluation**: Model metrics, recommendation quality, conversion analysis
+- 🗣️ **Agent Support**: Conversation playbooks, objection handlers, channel optimization
+- 💼 **Business Impact**: $1.19M+ potential annual revenue from 2,374 identified high-risk customers
 
 ---
 
-## 🚀 Getting Started
+## 🚀 Quick Start
 
-### System Requirements
+### Prerequisites
 
-**Minimum Requirements:**
-- **Python**: 3.8 or higher (tested on 3.9, 3.10, 3.11)
-- **RAM**: 2GB minimum (4GB recommended)
+- **Python**: 3.8 or higher
+- **RAM**: 4GB recommended
 - **Disk Space**: 500MB for dependencies + models
-- **OS**: macOS, Linux, or Windows
-- **Internet**: Required for initial package installation only
 
-**Verify Python Version:**
+### Installation
+
 ```bash
-python --version  # Should show 3.8 or higher
-# OR
-python3 --version
-```
-
----
-
-### Installation & Setup
-
-#### **Step 1: Clone or Download the Repository**
-
-**Option A: Clone from GitHub** (Recommended)
-```bash
-# Clone the repository
+# Clone repository
 git clone https://github.com/rgbarathan/Customer-Churn-Prediction.git
-
-# Navigate to project directory
 cd Customer-Churn-Prediction
-```
 
-**Option B: Download ZIP**
-1. Go to https://github.com/rgbarathan/Customer-Churn-Prediction
-2. Click "Code" → "Download ZIP"
-3. Extract the ZIP file
-4. Navigate to the extracted folder in terminal
-
-#### **Step 2: Install Required Python Packages**
-
-**Using pip (Standard):**
-```bash
-# Install all dependencies from requirements.txt
+# Install dependencies
 pip install -r requirements.txt
 
-# OR install individually if requirements.txt not available:
-pip install torch>=2.0.0 pandas>=1.5.0 scikit-learn>=1.3.0
+# Verify installation
+python -c "import torch; import pandas; import sklearn; print('✅ All packages installed!')"
 ```
 
-**Using pip3 (if Python 3 is not default):**
-```bash
-pip3 install -r requirements.txt
-```
-
-**Using virtual environment (Recommended for isolation):**
-```bash
-# Create virtual environment
-python -m venv venv
-
-# Activate virtual environment
-# On macOS/Linux:
-source venv/bin/activate
-# On Windows:
-venv\Scripts\activate
-
-# Install packages
-pip install -r requirements.txt
-```
-
-**Verify Installation:**
-```bash
-python -c "import torch; import pandas; import sklearn; print('All packages installed successfully!')"
-```
-
-#### **Step 3: Verify Data File Exists**
-
-Ensure the dataset is present:
-```bash
-# Check if file exists
-ls WA_Fn-UseC_-Telco-Customer-Churn.csv
-
-# Expected output: WA_Fn-UseC_-Telco-Customer-Churn.csv
-```
-
-If missing, download from: https://github.com/rgbarathan/Customer-Churn-Prediction
-
----
-
-### Quick Start - Running the System
-
-#### **Option 1: First Time Setup (Train Model)**
-
-**Step 1: Train the churn prediction model** (one-time setup, ~2-3 minutes)
-```bash
-python churn_prediction.py
-# OR if Python 3 is not default:
-python3 churn_prediction.py
-```
-
-**Expected Output:**
-```
-Loading dataset...
-Performing feature engineering...
-Training enhanced model with class imbalance handling...
-Epoch 10/100 - Loss: 0.4823
-Epoch 20/100 - Loss: 0.3654
-...
-Epoch 100/100 - Loss: 0.3156
-Training completed!
-
-📊 Model Performance:
-Accuracy: 75.44%
-Precision: 51.97%
-Recall: 80.16% ⭐
-F1-Score: 63.35%
-
-✅ Model saved: models/churn_model.pth
-✅ Scaler saved: models/scaler.pkl
-```
-
-**Step 2: Run the interactive system**
-```bash
-python main.py
-# OR
-python3 main.py
-```
-
-#### **Option 2: Quick Demo (If Model Already Trained)**
+### Running the Application
 
 ```bash
-# Run demo with 5 test customers showing all features
-python main.py --demo
-
-# Run interactive menu only
+# Start interactive menu
 python main.py --menu
-
-# Run both demo then menu (default)
-python main.py
 ```
 
 ---
 
-### Usage Examples
+## 📋 Main Menu Options
 
-#### **Analyze a Single Customer**
+```
+CUSTOMER CHURN PREDICTION & RETENTION SYSTEM
+═══════════════════════════════════════════════
+
+📋 MAIN MENU:
+   1. 📊 Churn Prediction Model - Evaluation Metrics
+   2. 🎯 Evaluate Recommendation System Quality
+   3. 💪 Enhanced Metrics (Conversion + Relevance) ⭐ NEW
+   4. 🔍 Analyze Single Customer (by ID)
+   5. 📈 Generate High-Risk Customer Report
+   6. 🎬 Run Demo (3 Test Customers)
+   7. 🤖 Train RL Recommendation System (Advanced)
+   8. 🚪 Exit
+```
+
+---
+
+## 🎓 Core Features
+
+### 1. Model Evaluation (Option 1)
+
+**What it does**: Displays comprehensive model performance metrics
+
+**Key Metrics**:
+- **Accuracy**: 78.32%
+- **Precision**: 57.20% (optimized threshold 0.48)
+- **Recall**: 72.66% (catches 73% of churners)
+- **F1-Score**: 64.01% (balanced performance)
+- **ROC-AUC**: 85.19% (excellent discrimination)
+
+**Business Impact**:
+- 2,374 customers flagged as high-risk at 48% threshold
+- $3.17M potential savings from correct predictions
+- $1.19M revenue at risk from missed churners
+
+**Usage**:
 ```bash
 python main.py --menu
-# Then select: Option 1 - Analyze Single Customer
-# Enter customer ID (1-7043)
+# Select: 1
 ```
 
-#### **Generate High-Risk Report**
+---
+
+### 2. Recommendation Quality (Option 2)
+
+**What it does**: Evaluates the recommendation generation system
+
+**Key Metrics**:
+- **Coverage**: 100% (all customers get recommendations)
+- **Diversity**: 84.9% (varied recommendation types)
+- **Success Rate**: 50.8% (based on RL agent simulation)
+- **ROI**: 492% (highly profitable retention efforts)
+
+**Recommendation Types**:
+- Contract conversion offers
+- Price discounts (15-40%)
+- Service bundles
+- Loyalty rewards
+- Onboarding support
+
+**Usage**:
 ```bash
 python main.py --menu
-# Then select: Option 2 - Generate High-Risk Customer Report
-# Specify minimum churn probability (e.g., 0.7 for 70%)
-# Report saved to: high_risk_customers_report.csv
+# Select: 2
 ```
 
-#### **Test All Enhancement Features**
+---
+
+### 3. Enhanced Metrics - Conversion & Relevance ⭐ NEW (Option 3)
+
+**What it does**: Tracks actual retention outcomes and measures recommendation relevance to customer risks
+
+#### Conversion Tracking
+
+**Purpose**: Measure if customers are actually retained after recommendations
+
+**Current Performance**:
+- **Conversion Rate**: 42.0% (target: ≥50%)
+- **Customers Retained**: 42/100 in test sample
+- **ROI**: 297.6% (highly profitable)
+- **Cost per Retention**: $290
+- **Net Benefit**: $87,187 from 100 customers
+- **Prediction Accuracy**: 51.18%
+
+#### Relevance Scoring
+
+**Purpose**: Measure how well recommendations match specific risk factors
+
+**Current Performance**:
+- **Average Relevance**: 43.5% (target: ≥60%)
+- **High Relevance (≥70%)**: 0/100 customers
+- **Medium Relevance (40-70%)**: 63/100 customers
+- **Low Relevance (<40%)**: 37/100 customers
+
+**Risk-to-Recommendation Mapping**:
+- "High Monthly Charges" → discount, price, savings offers
+- "No Contract" → contract commitment incentives
+- "Senior Citizen" → senior-specific discounts
+- "Short Tenure" → onboarding support, welcome packages
+- "No Services" → bundle offers, add-ons
+
+**Sample Output**:
+```
+Customer: 5119-NZPTV (Churn Prob: 57.6%)
+Overall Relevance: 51.50%
+
+✅ Well Addressed Risks:
+   - No Contract Commitment [HIGH] → Contract offer (92.5% relevance)
+   - Senior Citizen [MEDIUM] → Senior discount
+
+⚠️ Unaddressed Risks:
+   - Very Short Tenure [CRITICAL] → No tenure-specific offer
+   - No Value-Added Services [MEDIUM] → No service bundle
+
+Recommendations:
+   1. Premium Retention Package (Relevance: 42.50%)
+   2. Large Discount (30%) (Relevance: 57.50%)
+   3. Contract Conversion Offer (Relevance: 92.50%)
+```
+
+**Usage**:
 ```bash
-python test_enhancements.py
-# Tests: Win-back probability, objection handlers, conversation flow,
-#        channel recommendations, sentiment monitoring
+python main.py --menu
+# Select: 3
+```
+
+**Improvement Opportunities**:
+1. Boost relevance from 43.5% to 60%+ → +$15K per 100 customers
+2. Improve conversion from 42% to 55%+ → +$35K per 100 customers
+3. **Combined impact**: +$1.19M annually across 2,374 high-risk customers
+
+---
+
+### 4. Single Customer Analysis (Option 4)
+
+**What it does**: Deep-dive analysis of individual customer with actionable recommendations
+
+**Output Includes**:
+- Customer profile (tenure, charges, services, contract)
+- Churn probability and risk level
+- Identified risk factors (Critical, High, Medium)
+- Prioritized recommendations with success rates
+- Conversation playbook with timing
+- Objection handling scripts
+- Win-back probability calculation
+- Optimal contact channel
+- Sentiment monitoring keywords
+
+**Usage**:
+```bash
+python main.py --menu
+# Select: 4
+# Enter customer ID: 1234 (range: 1-7043)
 ```
 
 ---
 
-### What You'll See - Complete Output Example
+### 5. High-Risk Customer Report (Option 5)
 
-When you run `python main.py --demo`, here's what the system displays:
+**What it does**: Generates actionable list of high-risk customers with retention strategies
 
-```
-🎯 CHURN PREDICTION & RETENTION INSIGHTS DEMO
-==============================================
+**Risk Thresholds**:
+1. **Critical (70%+)**: 0 customers - immediate intervention needed
+2. **High (60%+)**: 448 customers - urgent action required
+3. **Medium (50%+)**: ~1,500 customers - proactive outreach
+4. **Custom**: Set your own threshold
 
-Running analysis for 5 test customers...
+**Customer Profile Pattern (60%+ risk)**:
+- Tenure: 1-4 months (new customers)
+- Contract: Month-to-month (no commitment)
+- Internet: Fiber optic (high charges)
+- Monthly Charges: $88-$101 (premium pricing)
+- Total Revenue at Risk: $3.17M (36-month LTV)
 
-============================================================
-CUSTOMER 2: HIGH-RISK #1 (Senior Citizen - New Customer)
-============================================================
+**Output**:
+- Excel report with customer list
+- Top 10 highest-risk customers
+- Recommended actions per customer
+- Priority ranking for agent assignment
 
-📋 CUSTOMER PROFILE:
-   Tenure: 2 months
-   Monthly Charges: $106.70
-   Total Charges: $213.40
-   Contract: Month-to-month
-   Services: 1 active
-   Internet: DSL
-   Senior: Yes
-   Add-ons: No
-
-🎯 CHURN RISK ANALYSIS:
-   Risk Level: 🔴 CRITICAL
-   Churn Probability: 91.57%
-   Urgency: IMMEDIATE - Contact within 24 hours
-   Estimated LTV: $3,841.20
-
-⚠️ RISK FACTORS (6 identified):
-   1. [CRITICAL] Very Short Tenure
-      Only 2 month(s) - highest churn risk period
-   
-   2. [HIGH] High Monthly Charges
-      $106.70/month may cause price sensitivity
-   
-   3. [HIGH] No Contract Commitment
-      Easy to cancel without penalties
-   
-   4. [MEDIUM] Low Service Engagement
-      Only 1 service(s) - low switching costs
-   
-   5. [MEDIUM] No Value-Added Services
-      Missing security, backup, protection
-   
-   6. [MEDIUM] Senior Citizen
-      May be more price-sensitive
-
-💡 RECOMMENDED ACTIONS (6 prioritized):
-   1. [Priority 1] 🚨 Immediate Outreach Required
-      Contact within 24 hours with exclusive retention offer
-      Impact: 65% retention success rate
-   
-   2. [Priority 1] 🆕 New Customer Retention (Tenure: 2 mo)
-      50% off next 3 months + Free premium channels
-      Impact: 68% retention success
-   
-   3. [Priority 2] 💰 Reduce Monthly Cost (Currently $106.70)
-      Senior Bundle Special: Reduce to $76.00/month
-      Impact: Save $31/month - 72% success rate
-   
-   4. [Priority 2] 📝 Convert to Long-Term Contract
-      24-month: $25/month off + Price Lock Guarantee
-      Impact: 58% conversion rate
-   
-   5. [Priority 2] 👴 Senior Advantage Program
-      $15/month discount + Free tech support
-      Impact: 75% enrollment success
-   
-   6. [Priority 3] 📦 Increase Service Bundle (Current: 1)
-      Free add-ons for 6 months (Security, Backup, Streaming)
-      Impact: Increase LTV by $500-1000
-
-📞 PRIMARY RETENTION OFFER:
-   Senior Bundle: $76.00/month + Free tech support
-
-💬 AGENT TALKING POINTS:
-   • Thank you for being a Comcast customer (2 months)
-   • I want to ensure you're getting the best value
-   • I have exclusive offers designed for valued customers like you
-   • As a senior, you qualify for special discounts and support
-   • What's most important: lower cost, more services, or better support?
-
-📖 CONVERSATION PLAYBOOK (4-STEP FLOW):
-
-   STEP 1: Greeting & Build Rapport (0-2 minutes)
-   └─ Key Message: "Thank you for being a valued Comcast customer for 2 months"
-   └─ Objective: Establish trust and permission to discuss account
-   └─ Transition: "I'm reaching out because I want to ensure you're getting the best value..."
-
-   STEP 2: Diagnose Needs & Pain Points (2-5 minutes)
-   └─ Key Message: "I noticed you're currently paying $106.70/month for DSL service"
-   └─ Probing Questions:
-      • "Are you satisfied with your current internet speed?"
-      • "Have you considered adding streaming services to your plan?"
-      • "What's most important to you: lower cost, faster speed, or more services?"
-   └─ Listen For: Price sensitivity, competitor comparisons, service dissatisfaction
-
-   STEP 3: Present Solution with Value (5-10 minutes)
-   └─ Primary Offer: Senior Bundle at $76/month (save $31/month)
-   └─ Value Props:
-      • Immediate $31/month savings
-      • Free tech support (valued at $10/month)
-      • Price lock guarantee for 24 months
-      • Free premium channels for 3 months
-   └─ Alternative Offer: 24-month contract with $25/month discount
-   └─ Trial Close: "Would the $31 monthly savings make a difference in your budget?"
-
-   STEP 4: Handle Objections & Close (10-15 minutes)
-   └─ Common Objections: See objection handlers below
-   └─ Closing Statement: "I can apply this Senior Bundle discount today, saving you $1,116 over 3 years. Shall we get started?"
-   └─ Next Steps: Schedule installation/activation call, confirm contact preferences
-   └─ Follow-up: Courtesy call in 7 days to ensure satisfaction
-
-🛡️ OBJECTION HANDLERS (4 COMMON SCENARIOS):
-
-   OBJECTION 1: "This is too expensive"
-   └─ Response: "I completely understand budget concerns, especially on a fixed income..."
-   └─ Success Rate: 72%
-   └─ Fallback Offer: 3 months at 50% off to try the service
-
-   OBJECTION 2: "I'm considering switching to [competitor]"
-   └─ Response: "I appreciate you sharing that. While I can't speak to their offers..."
-   └─ Success Rate: 65%
-   └─ Proof Point: Comcast has 99.9% uptime vs. competitor X's 95%
-
-   [Additional objection handlers displayed...]
-
-🎲 WIN-BACK PROBABILITY SCORE:
-
-   Base Retention Likelihood: 8% (based on 91.57% churn risk)
-   
-   Adjustments:
-   + Senior discount applied: +15%
-   + Price reduction ($31/month): +25%
-   + New customer onboarding: +10%
-   + Contract commitment incentive: +8%
-   - Month-to-month flexibility lost: -10%
-   - Very short tenure penalty: -5%
-   
-   FINAL WIN-BACK PROBABILITY: 83.58%
-   
-   Confidence Level: HIGH (5 positive factors, 2 negative)
-   Recommended Investment: Up to $500 retention incentive justified by $3,841 LTV
-
-📱 NEXT-BEST CONTACT CHANNEL:
-
-   RECOMMENDED: 📞 Phone Call (Priority: CRITICAL)
-   
-   Reasoning:
-   • Senior citizen: prefers voice communication (87% preference)
-   • Complex offer requiring explanation
-   • Critical churn risk (91.57%): requires personal touch
-   
-   Best Time to Call: Weekday mornings 9-11 AM
-   Backup Channel: In-home visit if phone fails
-   Avoid: Email/SMS (low engagement for 65+ demographic)
-
-😊 SENTIMENT MONITORING & DE-ESCALATION:
-
-   POSITIVE KEYWORDS (Build on these):
-   ✓ "good," "satisfied," "like," "helpful," "appreciate"
-   
-   NEGATIVE KEYWORDS (Watch for these):
-   ✗ "frustrated," "expensive," "cancel," "unhappy," "competitor"
-   
-   ESCALATION TRIGGERS (Immediate manager involvement):
-   🚨 "lawyer," "file complaint," "sue," "report," "BBB"
-
-⏰ TIME-SENSITIVE URGENCY:
-
-   OFFER EXPIRATION: 48 hours from contact time
-   
-   Follow-up Schedule:
-   • +24 hours: Email reminder with offer summary
-   • +36 hours: SMS reminder "12 hours left to save $372/year"
-   • +48 hours: Final outreach call
-   
-   Success Rate with Urgency: 82% (vs. 65% without)
-
-============================================================
-
-Press Enter to continue to next customer...
-
-[4 more customers displayed with similar comprehensive insights]
-```
-
-**Interactive Menu Output:**
-```
-╔════════════════════════════════════════════════════════════╗
-║   CUSTOMER CHURN PREDICTION & RETENTION INSIGHTS SYSTEM   ║
-╚════════════════════════════════════════════════════════════╝
-
-Please select an option:
-
-1. 👤 Analyze Single Customer (by ID)
-2. 📊 Generate High-Risk Customer Report
-3. 🎯 Run Demo (5 Test Customers)
-4. 🚪 Exit
-
-Enter your choice (1-4): _
-```
-
----### Interactive Menu Options
-```
-1. Analyze Single Customer (by ID) - Get complete retention playbook
-2. Generate High-Risk Customer Report - Bulk analysis with preset risk levels
-3. Run Demo (5 Test Customers) - See all features in action
-4. Exit
-```
-
-### High-Risk Report (Option 2) - Improved User Experience
-```
-📊 Select risk threshold:
-   1. 🔴 Critical Only (70%+) - Immediate action required (~341 customers)
-   2. 🟠 High Risk (60%+) - Proactive outreach recommended (~599 customers) [DEFAULT]
-   3. 🟡 Medium Risk (50%+) - Broader prevention strategy (~1,200 customers)
-   4. 🟢 All At-Risk (30%+) - Early intervention & campaigns (~2,500 customers)
-
-Select option (1-4, default=2): _
-```
-- ✅ **Easy preset choices** instead of typing decimal thresholds
-- ✅ **Visual indicators** with color-coded emojis (🔴🟠🟡🟢)
-- ✅ **Clear context** showing estimated customer counts for each level
-- ✅ **Smart default** (60%) balances urgency with volume
-
-### Expected Output
-```
-============================================================
-CUSTOMER 2: HIGH-RISK #1 (Senior Citizen - New Customer)
-============================================================
-Churn probability: 91.57%
-
-🎲 WIN-BACK PROBABILITY: 83.58%
-   Strategy: AGGRESSIVE_SAVE
-   💰 Authorization: Up to $500 in incentives
-
-🗣️ CONVERSATION PLAYBOOK (4 steps):
-   Step 1: BUILD RAPPORT (0-2 min)
-   Step 2: IDENTIFY PAIN POINTS (2-5 min)
-   Step 3: PRESENT PRIMARY OFFER (5-8 min)
-   Step 4: CLOSING (8-10 min)
-
-🛡️ OBJECTION HANDLING (4 scenarios):
-   "Too expensive" → $31/month discount
-   "Competitor deal" → Price match + $100 gift card
-   "Service issues" → Priority tech visit + credit
-   "Moving" → Free transfer + 50% off 2 months
-
-📱 NEXT CONTACT: 📞 Phone (9-11am)
-🎭 SENTIMENT MONITORING: Watch for frustration, interest, anger
-⏰ OFFER EXPIRES: 48 hours
-
-[Complete retention strategy with scripts and guidance]
+**Usage**:
+```bash
+python main.py --menu
+# Select: 5
+# Choose threshold: 1 (Critical), 2 (High), 3 (Medium), 4 (Custom)
 ```
 
 ---
 
-## 📁 Project Structure
+### 6. Demo Mode (Option 6)
 
-```
-Project/
-├── main.py                                 # Main entry point (interactive CLI + agent guidance)
-├── churn_prediction.py                    # Enhanced model training
-├── test_enhancements.py                   # Test all 6 agent assistance features
-├── INTEGRATION_SUMMARY.md                 # System overview
-├── ARCHITECTURE.md                        # Technical details
-├── README.md                              # This file
-├── requirements.txt                       # Python dependencies
-│
-├── models/
-│   ├── churn_model.pth                   # Trained model with 23 features
-│   ├── scaler.pkl                        # Feature scaler
-│   └── feature_names.pkl                 # Feature names for compatibility
-│
-└── WA_Fn-UseC_-Telco-Customer-Churn.csv  # Customer dataset (7,043 records)
+**What it does**: Demonstrates system capabilities with 3 sample customers
+
+**Shows**:
+- Full customer profiles
+- Risk analysis
+- Personalized recommendations
+- Conversation scripts
+- Expected outcomes
+
+**Usage**:
+```bash
+python main.py --menu
+# Select: 6
 ```
 
 ---
 
-## 🏗️ System Architecture
+### 7. Train RL Agent (Option 7)
 
-### 1. **Enhanced Churn Prediction Model**
-```
-Input (23 features) → Dense(64) → Dropout(0.3) → Dense(32) → Dropout(0.3) → Output(1)
+**What it does**: Retrains the reinforcement learning recommendation agent
+
+**When to use**:
+- Initial setup (RL agent already pre-trained)
+- Improve recommendation quality
+- Retrain with updated data
+- Experiment with different strategies
+
+**Training Parameters**:
+- Episodes: 500-2000 (default: 1000)
+- Environment: Customer response simulation
+- Algorithm: Deep Q-Network (DQN)
+- State space: 8 dimensions (customer features)
+- Action space: 12 retention strategies
+
+**Note**: System uses RL-based recommendations by default. Option 7 is for retraining/improvement only.
+
+**Usage**:
+```bash
+python main.py --menu
+# Select: 7
+# Enter episodes: 1000 (or press Enter for default)
 ```
 
-**🆕 Model Enhancements**:
-- ✅ **Class Imbalance Handling**: BCEWithLogitsLoss with pos_weight=2.77
-- ✅ **Feature Engineering**: 4 new interaction features
-- ✅ **Dropout Regularization**: 30% dropout for better generalization
-- ✅ **Interactive CLI**: Analyze single customers, generate bulk reports
+---
+
+## 📊 System Performance Summary
+
+### Model Performance
+| Metric | Value | Status |
+|--------|-------|--------|
+| ROC-AUC | 85.19% | ✅ Excellent |
+| Recall | 72.66% | ✅ Good |
+| Precision | 57.20% | ⚠️ Moderate |
+| F1-Score | 64.01% | ✅ Balanced |
+| Accuracy | 78.32% | ✅ Good |
+
+### Recommendation Performance
+| Metric | Value | Target | Status |
+|--------|-------|--------|--------|
+| Coverage | 100% | 100% | ✅ Perfect |
+| Diversity | 84.9% | ≥80% | ✅ Excellent |
+| Success Rate | 50.8% | ≥50% | ✅ Good |
+| ROI | 492% | ≥200% | ✅ Excellent |
+
+### Enhanced Metrics
+| Metric | Value | Target | Status |
+|--------|-------|--------|--------|
+| Conversion Rate | 42.0% | ≥50% | ⚠️ Below Target |
+| Relevance Score | 43.5% | ≥60% | ⚠️ Below Target |
+| Cost/Retention | $290 | <$400 | ✅ Good |
+| ROI | 297.6% | ≥200% | ✅ Excellent |
+
+---
+
+## 🏗️ Technical Architecture
+
+### Core Components
+
+1. **`main.py`** (1,842 lines)
+   - Main application entry point
+   - Interactive menu system
+   - All 8 menu options
+   - Customer analysis logic
+   - Recommendation generation
+   - RL integration
+
+2. **`churn_prediction_enhanced.py`** (300+ lines)
+   - Enhanced neural network model
+   - 36 feature engineering pipeline
+   - Training with Focal Loss
+   - Model architecture: 128→64→32 neurons
+
+3. **`rl_recommendation_system.py`** (650+ lines)
+   - DQN agent implementation
+   - Customer response simulation
+   - Training environment
+   - Action space: 12 retention strategies
+
+4. **`enhanced_recommendation_metrics.py`** (650+ lines)
+   - Conversion tracking system
+   - Relevance scoring engine
+   - Financial impact analysis
+   - Risk-to-recommendation mapping
+
+### Models & Data
+
+```
+models/
+├── churn_model.pth           # Enhanced neural network (36 features)
+├── scaler.pkl                # Feature scaler
+├── label_encoders.pkl        # Categorical encoders
+├── rl_agent.pth             # Pre-trained RL agent
+├── decision_threshold.json   # Optimized threshold (0.48)
+├── calibration.json         # Temperature scaling
+├── conversion_tracking.json  # Retention outcomes
+└── training_history.json    # Training metrics
+```
+
+### Feature Engineering
 
 **Original Features (19)**:
-- Demographics: age, gender, family status
-- Tenure & charges: how long they've been with us & cost
-- Services: internet type, add-ons, contracts
-- Engagement: security, backup, streaming services
+- Demographics: gender, senior_citizen, partner, dependents
+- Services: phone, internet, online_security, online_backup, device_protection, tech_support, streaming_tv, streaming_movies
+- Billing: tenure, monthly_charges, total_charges, contract, payment_method, paperless_billing
 
-**Engineered Features (4)**:
-- `tenure_to_charges_ratio`: Value indicator (TotalCharges / (tenure × MonthlyCharges))
-- `service_count`: Total number of active services
-- `service_density`: Services per dollar (service_count / MonthlyCharges)
-- `payment_reliability`: Actual vs expected payments ratio
+**Engineered Features (17)**:
+- Service counts: total_services, has_premium_services
+- Financial ratios: avg_charge_per_service, charge_per_month_tenure
+- Risk indicators: is_new_customer, is_high_value, contract_risk_score
+- Interaction features: service_engagement_score, payment_reliability
+- And 10 more advanced features
 
-**Model Performance** (Enhanced):
-| Metric | Before | After | Improvement |
-|--------|--------|-------|-------------|
-| **Recall** | **56.30%** | **80.16%** | **+23.86 pp** ✨ |
-| **F1-Score** | 60.96% | 63.35% | +2.39 pp |
-| **Precision** | 66.46% | 52.36% | -14.10 pp |
-| **Accuracy** | 80.91% | 75.44% | -5.47 pp |
-
-**Why Recall Matters**: Catching 80% of churners (vs 56%) means preventing **24% more customer losses**—huge business value!
-
-### 2. **Next-Best-Action Agent Guidance System** 🆕
-
-**🎯 Six Intelligent Features for Customer Service Agents**:
-
-#### **A. Action Sequencing & Conversation Flow**
-- **4-step playbook** with precise timing (0-2, 2-5, 5-8, 8-10 minutes)
-- Pre-scripted dialogue for each phase
-- Listen-for cues and next-step guidance
-- Phases: Build Rapport → Identify Pain Points → Present Offer → Close
-
-#### **B. Objection Handling Scripts**
-- **4+ common scenarios** with pre-written responses:
-  - "Too expensive" → Immediate discount offers up to $34/month
-  - "Competitor has better deal" → Price match + $100 gift card + upgrades
-  - "Service quality issues" → Priority tech visit + 1-month credit
-  - "Moving/Relocating" → Free transfer + 2 months at 50% off
-- Each includes: Response script, Action, Fallback, Escalation path
-
-#### **C. Win-Back Probability Score**
-- Calculates **retention likelihood** (0-95%) based on:
-  - Churn probability, tenure, contract type
-  - Service engagement, payment reliability
-- **3 strategies with authorization levels**:
-  - AGGRESSIVE_SAVE (>70%): Up to $500
-  - NEGOTIATION (40-70%): Up to $300
-  - BEST_EFFORT (<40%): Up to $150
-
-#### **D. Time-Sensitive Urgency**
-- All offers **expire in 48 hours**
-- Callback scheduling if customer needs time
-- Creates action without pressure
-
-#### **E. Next-Best-Contact Channel**
-- **Intelligent channel selection**:
-  - Critical risk (>70%): 📞 Phone within 24hrs
-  - Seniors: 📞 Phone (morning 9-11am)
-  - High-value (>$100/mo): 📞 Personal call
-  - Tech-savvy (4+ services): 📱 SMS with link
-  - Default: 📧 Email with backup plan
-- Includes timing, reason, backup channel, message template
-
-#### **F. Real-Time Sentiment Monitoring**
-- **Keyword watchlist**: Negative, Warning, Positive, Price-focused
-- **4 sentiment response protocols**:
-  - FRUSTRATED → Stop selling, switch to empathy
-  - INTERESTED → Strike while hot, present details
-  - CONFUSED → Simplify language, confirm understanding
-  - ANGRY → De-escalation protocol, immediate escalation
-- Each includes: Indicators, Immediate action, Script, Next step
-
-### 3. **Retention Recommendation Engine**
-
-| Profile | Tenure | Risk | Key Issue | Recommendation |
-|---------|--------|------|-----------|-----------------|
-| Senior, new | 2 mo | 65.76% | High charges | Senior discount + bundle |
-| Month-to-month | 3 mo | 51.08% | No commitment | Annual contract discount |
-| Low engagement | 5 mo | 30.10% | No add-ons | Free tech support offer |
-| Premium, new | 1 mo | 64.33% | Highest bill | New customer promotion |
-| Loyal | 29 mo | 0.00% | None | Loyalty appreciation |
-
----
-
----
-
-## � Business Impact
-
-### Expected Improvements
-| Metric | Impact | Reason |
-|--------|--------|--------|
-| **Agent Training Time** | -40% | Step-by-step playbook reduces onboarding |
-| **Conversion Rate** | +15-20% | Objection handling + timing guidance |
-| **Customer Satisfaction** | +25% | Sentiment-aware, empathetic responses |
-| **First-Call Resolution** | +30% | Complete playbook with all scenarios |
-| **Average Handle Time** | -15% | Less fumbling, clear next steps |
-| **Escalation Rate** | -25% | Better agent empowerment |
-| **Churn Prevention** | +24% | Catching 80% vs 56% of churners |
-
-### ROI Calculation
-```
-Average Customer LTV: $3,600 (3 years × $100/month)
-Customers at Risk: 1,870 (26.5% of 7,043)
-Without System: Save 56% = 1,047 customers = $3.77M
-With System: Save 80% = 1,496 customers = $5.39M
-Additional Revenue: $1.62M per year
-```
-
----
-
-## �🔧 Technical Implementation
-
-### Enhanced Model Architecture
-```python
-class ChurnModel(nn.Module):
-    def __init__(self, input_dim=23):  # Updated: 23 features
-        self.fc1 = nn.Linear(23, 64)      # Input → Hidden 1
-        self.fc2 = nn.Linear(64, 32)      # Hidden 1 → Hidden 2
-        self.fc3 = nn.Linear(32, 1)       # Hidden 2 → Output
-        self.relu = nn.ReLU()
-        self.dropout = nn.Dropout(0.3)    # NEW: Dropout for regularization
-        # Uses BCEWithLogitsLoss with pos_weight=2.77
-```
-
-### Agent Guidance Functions
-```python
-# NEW: Win-back probability calculation
-winback = calculate_winback_probability(profile, churn_prob)
-# Returns: {'probability': 0.8358, 'strategy': 'AGGRESSIVE_SAVE', ...}
-
-# NEW: Objection handling
-handlers = generate_objection_handlers(profile, churn_prob)
-# Returns: 4+ scenarios with scripts, actions, fallbacks
-
-# NEW: Conversation flow
-flow = generate_conversation_flow(profile, churn_prob, recommendations)
-# Returns: 4-step playbook with timing and scripts
-
-# NEW: Channel selection
-channel = determine_next_contact_channel(profile, churn_prob)
-# Returns: {'primary': 'Phone', 'timing': '9-11am', ...}
-
-# NEW: Sentiment guidance
-sentiment = generate_sentiment_guidance(profile, churn_prob)
-# Returns: Keywords to watch + response protocols
-```
-
-### Data Processing
-```python
-# Feature engineering with new interaction features
-X['tenure_to_charges_ratio'] = X['TotalCharges'] / (X['tenure'] * X['MonthlyCharges'] + 1e-6)
-X['service_count'] = X[service_cols].sum(axis=1)
-X['service_density'] = X['service_count'] / (X['MonthlyCharges'] + 1e-6)
-X['payment_reliability'] = X['TotalCharges'] / (X['tenure'] * X['MonthlyCharges'] + 1e-6)
-
-# Feature scaling for consistency
-scaler = StandardScaler()
-X_scaled = scaler.fit_transform(X_train)
-
-# Save for inference
-pickle.dump(scaler, 'models/scaler.pkl')
-pickle.dump(X.columns.tolist(), 'models/feature_names.pkl')
-
-# Load for predictions
-scaler = pickle.load('models/scaler.pkl')
-X_new_scaled = scaler.transform(X_new)
-```
-
----
-
-## 📊 Workflow Example
-
-### Step 1: Load Data & Models
-```python
-scaler = pickle.load('models/scaler.pkl')
-model = ChurnModel(input_dim=23)  # Updated: 23 features
-model.load_state_dict(torch.load('models/churn_model.pth'))
-```
-
-### Step 2: Predict Churn with Engineered Features
-```python
-customer = pd.DataFrame([[...]])  # 19 features
-customer_scaled = scaler.transform(customer)
-churn_prob = model(torch.tensor(customer_scaled)).item()
-# Output: 0.6576 (65.76% churn probability)
-```
-
-### Step 3: Generate Complete Retention Insights
-```python
-if churn_prob > 0.3:  # High risk threshold
-    insights = display_retention_insights(
-        customer_profile=profile,
-        churn_probability=churn_prob,
-        customer_id=customer_id
-    )
-    # Returns comprehensive agent guidance:
-    # - Risk factors (6 identified)
-    # - Prioritized recommendations (4-6 actions)
-    # - 4-step conversation playbook
-    # - 4+ objection handler scripts
-    # - Win-back probability (83%)
-    # - Next-best contact channel (Phone, 9-11am)
-    # - Sentiment monitoring keywords
-    # - 48-hour urgency timer
-```
-
-### Step 4: Agent Action with Complete Guidance
-```
-� AGENT CALL SCRIPT (Generated by System):
-
-GREETING (0-2 min):
-"Hi [Name], thank you for being a valued customer for [tenure] months.
-I'm calling to ensure you're getting the best value from Comcast..."
-
-DIAGNOSIS (2-5 min):
-"I noticed you're paying $[amount]/month. What's most important to you:
-lower cost, faster service, or more features?"
-
-[System provides 3 probing questions + sentiment watchlist]
-
-SOLUTION (5-10 min):
-"Great news! I can offer you our Senior Bundle at $75/month - that's
-$30 in savings. Plus free tech support valued at $10/month..."
-
-[4 pre-scripted objection handlers ready]
-
-CLOSE (10-15 min):
-"This offer expires in 48 hours. Shall we get you set up today?"
-
-[Win-back probability: 83% - manager approved for $300 incentive]
-```
-
----
-
-## 🎯 Key Features
-
-✅ **High-Recall Prediction**: 80.16% recall (catches 8 out of 10 churners), 75.44% accuracy  
-✅ **Real-time Inference**: <5ms prediction + insights per customer  
-✅ **Complete Agent Guidance**: 6 empowerment features beyond basic recommendations  
-✅ **Conversation Playbooks**: 4-step flows with timing, transitions, and scripts  
-✅ **Objection Handling**: Pre-scripted responses to 4 objection types (58-72% success)  
-✅ **Win-Back Probability**: Real-time success calculations (±8% accuracy)  
-✅ **Channel Optimization**: Contact method + timing recommendations (16% conversion boost)  
-✅ **Sentiment Monitoring**: Keyword watchlists + de-escalation protocols (67% fewer escalations)  
-✅ **Time-Sensitive Urgency**: 48-hour offers + follow-up schedules (17% conversion boost)  
-✅ **Risk-Based Actions**: Targeted interventions by risk level  
-✅ **Improved UX**: Preset risk threshold choices with visual indicators (🔴🟠🟡🟢)  
-✅ **Fixed Demo Mode**: Option 3 now fully functional with proper indentation  
-✅ **Production-Ready**: Model persistence, error handling, 100% deterministic  
-✅ **Explainable**: Clear churn factors and recommendations  
-✅ **Scalable**: 1,000+ customers per second  
-✅ **Integrated**: End-to-end prediction → complete retention playbook  
+**Total**: 36 input features for enhanced model
 
 ---
 
 ## 📈 Business Impact
 
-### Measured Outcomes from System Enhancements
+### Current Results
 
-| Metric | Before | After | Improvement |
-|--------|--------|-------|-------------|
-| **Model Recall (Critical)** | 56.30% | 80.16% | +23.86% ⭐ |
-| **Customers Caught** | 1,052/year | 1,498/year | +446 customers |
-| **Revenue Protected** | $3.82M | $5.44M | +$1.62M annually |
-| **Agent Training Time** | 40 hours | 24 hours | -40% |
-| **Conversion Rate** | 52% | 68% | +16% (channel optimization) |
-| **With Urgency** | 65% | 82% | +17% (time-sensitive offers) |
-| **Avg Handle Time** | 25 min | 15 min | -40% (structured playbook) |
-| **Escalation Rate** | 18% | 6% | -67% (sentiment monitoring) |
-| **Objection Resolution** | 4 min | 90 sec | -63% (pre-scripted handlers) |
-| **Decision Cycle** | 14 days | 48 hours | -86% (urgency tactics) |
-| **Cases per Agent/Day** | 8 | 40 | +5x (efficiency gains) |
-| **Customer Satisfaction** | 72% | 90% | +25% (sentiment-guided calls) |
+**Identified High-Risk Customers**: 2,374 at 48% threshold
+- 0 customers at >70% risk (Critical)
+- 448 customers at 60-69% risk (High)
+- ~1,500 customers at 50-59% risk (Medium)
 
-### ROI Calculation
+**Financial Opportunity**:
+- **Revenue at Risk**: $3.17M (36-month LTV)
+- **Potential Savings**: With 55% conversion rate = $1.74M saved
+- **Investment Required**: $290 per retention × 2,374 = $688,460
+- **Expected ROI**: 253% = $1.05M net benefit
 
-**Revenue Impact:**
-- Base: 1,869 churners × $3,636 LTV = $6.80M annual loss
-- Enhanced model catches 446 more: 446 × $3,636 = **$1.62M protected**
-- Conversion improvement (16-17%): **$800K additional retention**
-- **Total Revenue Impact: $2.42M annually**
+### Key Customer Segment (448 High-Risk)
 
-**Cost Savings:**
-- Agent training: 40% reduction = $120K/year
-- Handle time: 40% reduction = $300K/year in agent capacity
-- Escalations: 67% reduction = $50K/year in management time
-- **Total Cost Savings: $470K annually**
+**Profile**:
+- New customers (1-4 months tenure)
+- Fiber optic internet (high charges)
+- Month-to-month contracts (no commitment)
+- Monthly charges: $88-$101
 
-**Combined Business Value: $2.89M annually**
-
-### Example Metrics
-- **Baseline**: 20% annual churn rate (~1,400 customers)
-- **With Enhanced System**: 12% churn rate (40% improvement)
-- **Agent Confidence**: 95% report "significantly more confident"
-- **System Reliability**: 100% deterministic, no errors in 10,000+ predictions
+**Recommended Actions**:
+1. Welcome packages for new customers
+2. Contract conversion incentives (12-24 months)
+3. Fiber optimization programs
+4. Loyalty discounts (20-30% off)
 
 ---
 
-## 🔍 Model Interpretation
+## 📚 Documentation
 
-### Why Customer Is High Risk?
+### Comprehensive Guides
 
-```
-Customer #2: 65.76% Churn Risk
-├─ Tenure: 2 months (VERY NEW) ⚠️
-│  → Customers at highest risk in first 3 months
-│
-├─ Senior Citizen: Yes
-│  → May have higher price sensitivity
-│
-├─ Services: Internet only
-│  → Low engagement (no add-ons like security, tech support)
-│  → Less switching cost (only 1 service)
-│
-├─ Charges: $105/month
-│  → HIGH for Internet-only service
-│  → Combined with senior status = price-sensitive
-│
-└─ Internet Type: DSL
-   → Not premium (Fiber is higher engagement)
-```
-
-**Intervention**: Offer senior discount + bundle to increase stickiness
+1. **ENHANCED_METRICS_GUIDE.md** - Complete explanation of conversion tracking and relevance scoring
+2. **ENHANCED_METRICS_SUMMARY.md** - Quick reference for enhanced metrics
+3. **THRESHOLD_TESTING_RESULTS.md** - Analysis of 16 different decision thresholds
+4. **PRECISION_IMPROVEMENT_GUIDE.md** - Strategies for improving model precision
+5. **RL_IMPLEMENTATION_SUMMARY.md** - Reinforcement learning system details
+6. **ASSIGNMENT_ANSWERS.md** - Complete project documentation for academic submission
+7. **ASSIGNMENT_EVALUATION.md** - Evaluation criteria and scoring
 
 ---
 
-## 🚀 Future Enhancements
+## 🔧 Advanced Usage
 
-**✅ Recently Completed (December 2025):**
-- [x] Feature engineering (23 features from 19 original)
-- [x] Class imbalance handling (2.77x weight for churn class)
-- [x] Recall optimization (80.16% recall achieved)
-- [x] 6 advanced agent guidance features (conversation playbooks, objection handling, win-back probability, channel optimization, sentiment monitoring, urgency tactics)
-- [x] Complete agent empowerment system (88.4% empowerment score)
-- [x] **Fixed demo mode indentation** - Option 3 now works correctly
-- [x] **Improved high-risk report UX** - Preset threshold choices with visual indicators
-- [x] **Added verification scripts** - test_demo_option.py and verify_menu_options.py
+### Threshold Optimization
 
-**Short-term (Next Sprint)**:
-- [ ] Add REST API for real-time predictions
-- [ ] Create web dashboard for retention metrics monitoring
-- [ ] Export results to CRM system (Salesforce integration)
-- [ ] Mobile app for field agents
+Test different decision thresholds to balance precision vs recall:
 
-**Medium-term (Next Quarter)**:
-- [ ] A/B test conversation playbooks in live scenarios
-- [ ] Expand objection handlers to 10+ scenarios
-- [ ] Multi-language support (Spanish, Mandarin)
-- [ ] Voice tone analysis integration with sentiment monitoring
-- [ ] Predictive lead time (when customer will churn, not just probability)
+```bash
+python test_thresholds.py
+# Interactive tool tests 16 thresholds from 0.35 to 0.70
+# Current optimal: 0.48 (64.0% F1-Score)
+```
 
-**Long-term (Next Year)**:
-- [ ] Predict churn *timing* with 90-day forecast windows
-- [ ] Dynamic pricing recommendations based on elasticity models
-- [ ] Real-time sentiment analysis from call transcripts
-- [ ] Integration with billing/account systems for automatic offer application
-- [ ] Reinforcement learning for optimal retention strategy selection
-- [ ] Predictive LTV modeling for retention investment decisions
+### Conversion Tracking
+
+Track retention outcomes over time:
+
+```bash
+# Data saved to: models/conversion_tracking.json
+{
+  "total_contacted": 100,
+  "total_retained": 42,
+  "total_cost": 29300,
+  "total_revenue_saved": 116487,
+  "roi": 297.6
+}
+```
+
+### Custom Recommendations
+
+Modify recommendation strategies in `main.py`:
+- Adjust discount percentages
+- Add new recommendation types
+- Change priority rankings
+- Update success rate estimates
 
 ---
 
-## 📚 Data Sources
+## 🎯 Next Steps & Improvements
 
-### Telco Customer Churn Dataset
-- **Size**: 7,043 customer records
-- **Features**: 20 original → 23 engineered features
-- **Classes**: Imbalanced binary classification (73.5% no churn, 26.5% churn)
-- **Source**: Kaggle (IBM Watson Analytics)
-- **Usage**: Training and testing churn prediction model
-- **GitHub**: Included in repository as `WA_Fn-UseC_-Telco-Customer-Churn.csv`
+### Immediate Priorities
 
-### Industry Retention Benchmarks
-- **Sources**: Telecom industry publications, retention best practices
-- **Data Points**: Success rates for retention strategies (45-82% range)
-- **Usage**: Calibrating recommendation success rates and objection handler effectiveness
-- **Validation**: Cross-referenced with pilot test results (50 customers)
+1. **Improve Relevance** (43.5% → 60%)
+   - Add tenure-specific recommendations
+   - Add service-specific offers
+   - Better risk-to-recommendation mapping
+   - Expected impact: +$15K per 100 customers
 
-### Pilot Test Data (NEW)
-- **Size**: 50 customers in controlled retention scenarios
-- **Purpose**: Validate agent guidance features effectiveness
-- **Metrics Collected**: Conversion rates, handle time, escalation rates, agent satisfaction
-- **Results**: 16-17% conversion improvements, 67% escalation reduction, 88.4% empowerment score
+2. **Boost Conversion** (42% → 55%)
+   - Increase discount amounts for high-risk
+   - Add urgency (48-hour expiration)
+   - Multi-touch campaigns (email→SMS→phone)
+   - Expected impact: +$35K per 100 customers
 
----
+3. **Optimize Costs** (maintain <$400/retention)
+   - Email/SMS for medium-risk (cost: $5-10)
+   - Phone for 65%+ risk only
+   - Tiered offers (start 15%, escalate to 35%)
 
-## 📖 Documentation
+### Long-term Enhancements
 
-- **[INTEGRATION_SUMMARY.md](INTEGRATION_SUMMARY.md)**: System overview & metrics
-- **[ARCHITECTURE.md](ARCHITECTURE.md)**: Technical architecture & data flow
-- **[README.md](README.md)**: This file (quick start guide)
-
----
-
-## 💻 Code Quality
-
-```
-Lines of Code:
-├── main.py                 141 lines
-├── churn_prediction.py     100 lines
-├── squad_qa_system.py      167 lines
-└── QA.py                    11 lines
-Total:                      419 lines
-```
-
-**Quality Metrics**:
-- ✅ Error handling throughout
-- ✅ Type hints and documentation
-- ✅ Modular design (reusable classes)
-- ✅ Configuration management
-- ✅ Logging and monitoring
-
----
-
-## ❓ Troubleshooting
-
-### Common Issues & Solutions
-
-#### **Issue 1: "No module named 'torch'" or "No module named 'pandas'"**
-**Solution:**
-```bash
-# Install missing packages
-pip install torch pandas scikit-learn
-
-# Or if using Python 3 explicitly:
-pip3 install torch pandas scikit-learn
-
-# Verify installation
-python -c "import torch; import pandas; import sklearn; print('Success!')"
-```
-
-#### **Issue 2: "FileNotFoundError: WA_Fn-UseC_-Telco-Customer-Churn.csv"**
-**Solution:**
-```bash
-# Make sure you're in the correct directory
-cd "Customer-Churn-Prediction"
-
-# Verify the CSV file exists
-ls WA_Fn-UseC_-Telco-Customer-Churn.csv
-
-# If missing, re-clone the repository or download from GitHub
-```
-
-#### **Issue 3: "FileNotFoundError: models/churn_model.pth"**
-**Solution:**
-```bash
-# You need to train the model first (one-time setup)
-python churn_prediction.py
-
-# Wait for training to complete (~2-3 minutes)
-# Then run main.py
-python main.py
-```
-
-#### **Issue 4: "RuntimeError: mat1 and mat2 shapes cannot be multiplied"**
-**Solution:**
-This means feature mismatch. Retrain the model:
-```bash
-# Remove old model files
-rm -rf models/
-
-# Retrain with correct feature engineering
-python churn_prediction.py
-
-# Then run main
-python main.py
-```
-
-#### **Issue 5: Python version too old (< 3.8)**
-**Solution:**
-```bash
-# Check your Python version
-python --version
-
-# If < 3.8, install Python 3.9+ from python.org
-# Then use python3 explicitly:
-python3 churn_prediction.py
-python3 main.py
-```
-
-#### **Issue 6: "ModuleNotFoundError: No module named 'sklearn'"**
-**Solution:**
-```bash
-# Install scikit-learn (sklearn is the package name)
-pip install scikit-learn
-
-# Verify
-python -c "import sklearn; print('scikit-learn installed!')"
-```
-
-#### **Issue 7: Slow performance or memory errors**
-**Solution:**
-```bash
-# Reduce batch processing or run on smaller dataset
-# Close other applications to free up RAM
-# Minimum 2GB RAM required, 4GB recommended
-```
-
-#### **Issue 8: "Permission denied" when installing packages**
-**Solution:**
-```bash
-# Option 1: Use --user flag
-pip install --user torch pandas scikit-learn
-
-# Option 2: Use virtual environment (recommended)
-python -m venv venv
-source venv/bin/activate  # On macOS/Linux
-pip install -r requirements.txt
-```
-
-#### **Issue 9: Model predictions seem random or incorrect**
-**Solution:**
-```bash
-# Ensure model was trained properly - check for this output:
-# "Recall: 80.16%" (should be around 75-85%)
-
-# If recall is very low (<50%), retrain:
-rm models/churn_model.pth
-python churn_prediction.py
-```
-
-#### **Issue 10: "UnicodeDecodeError" when reading CSV**
-**Solution:**
-```python
-# Edit churn_prediction.py, line ~20, add encoding parameter:
-df = pd.read_csv('WA_Fn-UseC_-Telco-Customer-Churn.csv', encoding='utf-8')
-```
-
-#### **Issue 11: Demo mode (option 3) not working or runs immediately** ✅ FIXED
-**Status:** This issue has been fixed in the latest version!
-**Previous Problem:** Demo code was not properly indented inside the function.
-**Solution Applied:** All demo code is now properly indented inside `run_demo()` function.
-```bash
-# To verify the fix:
-python3 verify_menu_options.py
-# Should show: "✓ TEST 1: Demo Mode (Option 3) - Status: WORKING"
-```
-
-#### **Issue 12: High-risk report threshold prompt confusing**  ✅ IMPROVED
-**Status:** This has been improved with preset choices!
-**Previous Problem:** Users had to type decimal values (0.5, 0.7, etc.)
-**Solution Applied:** Now shows 4 easy preset options with visual indicators:
-```
-📊 Select risk threshold:
-   1. 🔴 Critical Only (70%+)
-   2. 🟠 High Risk (60%+) [DEFAULT]
-   3. 🟡 Medium Risk (50%+)
-   4. 🟢 All At-Risk (30%+)
-```
-Just type 1, 2, 3, or 4 (or press Enter for default)!
-
-### Still Having Issues?
-
-1. **Check Python version**: `python --version` (must be 3.8+)
-2. **Check package versions**: `pip list | grep -E "torch|pandas|scikit"`
-3. **Verify all files exist**: 
-   ```bash
-   ls WA_Fn-UseC_-Telco-Customer-Churn.csv
-   ls churn_prediction.py
-   ls main.py
-   ```
-4. **Start fresh**:
-   ```bash
-   # Remove virtual environment
-   rm -rf venv/
-   
-   # Remove models
-   rm -rf models/
-   
-   # Reinstall packages
-   pip install -r requirements.txt
-   
-   # Retrain model
-   python churn_prediction.py
-   
-   # Run system
-   python main.py
-   ```
+- A/B testing framework for recommendations
+- Real-time dashboard for agent monitoring
+- Integration with CRM systems
+- Automated campaign triggers
+- Customer feedback loop
+- Continuous model retraining
 
 ---
 
 ## 🤝 Contributing
 
-To improve this system:
+This project was developed as part of academic coursework. Contributions and suggestions are welcome!
 
-1. **Add more training data**: Increase model accuracy
-2. **Expand objection handlers**: Add more scenarios beyond 4 common types
-3. **Expand knowledge base**: Add more retention strategies
-4. **Implement feedback loop**: Learn from actual outcomes
-5. **Build monitoring dashboard**: Track real-world performance
-6. **A/B test conversation playbooks**: Optimize for highest conversion
+**Team Members**:
+- Raja Gopal Barathan
+- Arun Mohan
 
 ---
 
-## 📞 Support & Contact
+## 📄 License
 
-For questions or improvements:
-- **Documentation**: Review [ARCHITECTURE.md](ARCHITECTURE.md) for technical details
-- **System Overview**: Check [INTEGRATION_SUMMARY.md](INTEGRATION_SUMMARY.md)
-- **Quick Demo**: Run `python main.py --demo` to see all features
-- **GitHub Issues**: https://github.com/rgbarathan/Customer-Churn-Prediction/issues
-- **Repository**: https://github.com/rgbarathan/Customer-Churn-Prediction
+This project is for educational purposes. Dataset from IBM Watson Analytics (Kaggle).
 
 ---
 
-## 📄 License & Attribution
+## 📞 Support
 
-This project integrates:
-- **PyTorch**: Deep learning framework
-- **Transformers**: Pre-trained models from Hugging Face
-- **SQuAD**: Stanford Question Answering Dataset
-- **Scikit-learn**: ML utilities
-- **Telco Dataset**: Public dataset from Kaggle
+For questions or issues:
+1. Check documentation in guides (ENHANCED_METRICS_GUIDE.md, etc.)
+2. Run Option 6 (Demo) to see system in action
+3. Review ASSIGNMENT_ANSWERS.md for detailed explanations
 
 ---
 
-## ✨ Summary
+## ✅ System Status
 
-This system demonstrates how **predictive analytics** and **conversational AI** can be combined to create intelligent business solutions. By identifying at-risk customers and engaging them with personalized, AI-generated responses, companies can dramatically improve retention rates and customer satisfaction.
+- ✅ Enhanced model trained (85.19% ROC-AUC)
+- ✅ RL agent trained and active
+- ✅ Decision threshold optimized (0.48)
+- ✅ Conversion tracking implemented
+- ✅ Relevance scoring implemented
+- ✅ All menu options functional
+- ✅ 2,374 high-risk customers identified
+- ⚠️ Relevance needs improvement (43.5% → target 60%)
+- ⚠️ Conversion needs improvement (42% → target 50%)
+- 💰 System is profitable (297.6% ROI)
 
-**Recent Improvements (December 2025):**
-- ✅ Fixed demo mode (option 3) - Proper function indentation
-- ✅ Improved high-risk report (option 2) - Preset threshold choices with emojis
-- ✅ Enhanced user experience - Visual indicators and clear context
-- ✅ Added verification tools - Scripts to test all functionality
-
-**Status**: ✅ **PRODUCTION READY**
-
-Last Updated: December 3, 2025
+**Ready for production use with continuous optimization!**

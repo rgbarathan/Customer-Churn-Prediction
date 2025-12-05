@@ -1,0 +1,6 @@
+{
+  "threshold": 0.48,
+  "description": "Balanced F1-Score",
+  "set_date": "2025-12-05",
+  "set_by": "Threshold Testing Tool"
+}

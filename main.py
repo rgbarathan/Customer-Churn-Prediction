@@ -1,13 +1,32 @@
 
 import torch
 import pandas as pd
-from churn_prediction import ChurnModel
+try:
+    from churn_prediction_enhanced import ChurnModel, advanced_feature_engineering
+    ENHANCED_MODEL = True
+except ImportError:
+    from churn_prediction import ChurnModel
+    ENHANCED_MODEL = False
 import os
 import pickle
 import sys
 from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score, confusion_matrix, roc_auc_score, classification_report
 from sklearn.preprocessing import LabelEncoder
 import numpy as np
+import random
+import json
+
+# Import RL Recommendation System
+try:
+    from rl_recommendation_system import (
+        DQNAgent, RetentionEnvironment, RETENTION_ACTIONS,
+        get_rl_recommendations, prepare_customer_state, train_rl_agent
+    )
+    RL_AVAILABLE = True
+    print("✓ RL Recommendation System imported successfully")
+except ImportError as e:
+    RL_AVAILABLE = False
+    print(f"⚠️  RL Recommendation System not available: {e}")
 
 # Create models directory if it doesn't exist
 os.makedirs('models', exist_ok=True)
@@ -26,14 +45,99 @@ except FileNotFoundError:
     feature_names = None
     input_dim = 19
 
-# Load churn model
-model = ChurnModel(input_dim=input_dim)
+# Load churn model with appropriate architecture
+if ENHANCED_MODEL and input_dim > 25:
+    model = ChurnModel(input_dim=input_dim, hidden_dims=[128, 64, 32], dropout=0.4)
+    print(f"✓ Using enhanced model architecture")
+else:
+    model = ChurnModel(input_dim=input_dim)
+    print(f"✓ Using standard model architecture")
+
 model.load_state_dict(torch.load('models/churn_model.pth'))
 model.eval()
 
 print("✓ Loaded churn prediction model")
 print(f"✓ Model expects {input_dim} input features")
 print("✓ Initialized retention recommendation engine")
+
+# Load optional calibration and threshold artifacts
+temperature = 1.0
+decision_threshold = 0.5
+try:
+    with open('models/calibration.json', 'r') as f:
+        temperature = float(json.load(f).get('temperature', 1.0))
+    print(f"✓ Loaded calibration temperature T={temperature:.3f}")
+except Exception:
+    pass
+try:
+    with open('models/decision_threshold.json', 'r') as f:
+        decision_threshold = float(json.load(f).get('threshold', 0.5))
+    print(f"✓ Using decision threshold {decision_threshold:.3f}")
+except Exception:
+    pass
+
+# Initialize RL Agent for recommendations
+rl_agent = None
+rl_env = None
+# Health flag for RL agent (fallback to rule-based if unhealthy)
+RL_HEALTHY = False
+if RL_AVAILABLE:
+    try:
+        state_dim = 8
+        action_dim = len(RETENTION_ACTIONS)
+        rl_env = RetentionEnvironment()
+        rl_agent = DQNAgent(state_dim, action_dim)
+        
+        # Try to load pre-trained RL agent
+        rl_model_path = 'models/rl_agent.pth'
+        if rl_agent.load(rl_model_path):
+            print("✓ Loaded pre-trained RL agent for recommendations")
+        else:
+            print("⚠️  No pre-trained RL agent found - will use rule-based recommendations")
+            print("   Run option 7 from menu to train RL agent")
+        
+        # Quick health check of RL agent to detect degenerate behavior
+        def _rl_random_profile():
+            tenure = random.randint(1, 60)
+            monthly_charges = random.uniform(50, 120)
+            contract_type = random.randint(0, 2)
+            profile = {
+                'tenure_months': tenure,
+                'monthly_charges': monthly_charges,
+                'contract_type': contract_type,
+                'service_count': random.randint(1, 6),
+                'senior_citizen': random.random() > 0.8,
+                'has_addons': random.random() > 0.5,
+                'total_charges': monthly_charges * tenure
+            }
+            churn_prob = random.uniform(0.3, 0.9)
+            return profile, churn_prob
+
+        def _assess_rl_health(agent, samples: int = 200, dominance_threshold: float = 0.95) -> bool:
+            try:
+                counts = [0] * action_dim
+                for _ in range(samples):
+                    profile, churn = _rl_random_profile()
+                    state = prepare_customer_state(profile, churn)
+                    action = agent.select_action(state, training=False)
+                    counts[action] += 1
+                dominant = max(counts) / max(1, sum(counts))
+                if dominant >= dominance_threshold and counts.index(max(counts)) == 0:
+                    # Dominated by "No Action" → unhealthy
+                    return False
+                return True
+            except Exception as _:
+                return False
+
+        RL_HEALTHY = _assess_rl_health(rl_agent)
+        if RL_HEALTHY:
+            print("✓ RL agent health check passed - using RL-based recommendations")
+        else:
+            print("⚠️  RL agent health check failed - defaulting to rule-based recommendations")
+    except Exception as e:
+        print(f"⚠️  Could not initialize RL agent: {e}")
+        rl_agent = None
+        RL_HEALTHY = False
 
 def evaluate_model_performance():
     """Evaluate model performance on the test dataset and display comprehensive metrics."""
@@ -52,12 +156,25 @@ def evaluate_model_performance():
         # Prepare data (same as training)
         df_encoded = df.drop(columns=['customerID', 'Churn'], errors='ignore')
         
-        # Encode categorical columns
-        for col in df_encoded.select_dtypes(include=['object']).columns:
-            df_encoded[col] = LabelEncoder().fit_transform(df_encoded[col])
-        
+        # CRITICAL: Convert TotalCharges to numeric BEFORE encoding loop
         df_encoded['TotalCharges'] = pd.to_numeric(df_encoded['TotalCharges'], errors='coerce')
         df_encoded.fillna(0, inplace=True)
+        
+        # Load saved label encoders for consistency
+        try:
+            with open('models/label_encoders.pkl', 'rb') as f:
+                label_encoders = pickle.load(f)
+            use_saved_encoders = True
+        except FileNotFoundError:
+            label_encoders = {}
+            use_saved_encoders = False
+        
+        # Encode categorical columns using saved encoders
+        for col in df_encoded.select_dtypes(include=['object']).columns:
+            if use_saved_encoders and col in label_encoders:
+                df_encoded[col] = label_encoders[col].transform(df_encoded[col])
+            else:
+                df_encoded[col] = LabelEncoder().fit_transform(df_encoded[col])
         
         # Add engineered features
         df_encoded = add_engineered_features(df_encoded)
@@ -72,8 +189,8 @@ def evaluate_model_performance():
         print("🔄 Running predictions on all customers...")
         with torch.no_grad():
             outputs = model(X_tensor)
-            probs = torch.sigmoid(outputs).numpy().flatten()
-            predictions = (probs > 0.5).astype(int)
+            probs = torch.sigmoid(outputs / temperature).numpy().flatten()
+            predictions = (probs >= decision_threshold).astype(int)
         
         # Calculate comprehensive metrics
         accuracy = accuracy_score(y_true, predictions)
@@ -186,13 +303,13 @@ def evaluate_model_performance():
         print("="*70)
         
         critical_risk = (probs > 0.7).sum()
-        high_risk = ((probs > 0.5) & (probs <= 0.7)).sum()
-        medium_risk = ((probs > 0.3) & (probs <= 0.5)).sum()
+        high_risk = ((probs > decision_threshold) & (probs <= 0.7)).sum()
+        medium_risk = ((probs > 0.3) & (probs <= decision_threshold)).sum()
         low_risk = (probs <= 0.3).sum()
         
         print(f"\n   🔴 Critical Risk (>70%):     {critical_risk:5d} customers ({critical_risk/len(probs)*100:.2f}%)")
-        print(f"   🟠 High Risk (50-70%):       {high_risk:5d} customers ({high_risk/len(probs)*100:.2f}%)")
-        print(f"   🟡 Medium Risk (30-50%):     {medium_risk:5d} customers ({medium_risk/len(probs)*100:.2f}%)")
+        print(f"   🟠 High Risk (>{decision_threshold:.0%}-70%): {high_risk:5d} customers ({high_risk/len(probs)*100:.2f}%)")
+        print(f"   🟡 Medium Risk (30%-{decision_threshold:.0%}): {medium_risk:5d} customers ({medium_risk/len(probs)*100:.2f}%)")
         print(f"   🟢 Low Risk (<30%):          {low_risk:5d} customers ({low_risk/len(probs)*100:.2f}%)")
         
         print("\n" + "="*70)
@@ -204,27 +321,66 @@ def evaluate_model_performance():
         print("✅ MODEL EVALUATION COMPLETE")
         print("="*70)
         
-        # Summary interpretation
-        print("\n💡 KEY TAKEAWAYS:")
+        # Summary interpretation with more context
+        print("\n💡 KEY TAKEAWAYS & RECOMMENDATIONS:")
+        
+        # Overall Performance
+        print(f"\n   📊 Overall Performance:")
         if accuracy > 0.8:
-            print("   ✓ Model shows strong overall accuracy")
+            print(f"      ✓ Strong accuracy ({accuracy:.2%}) - Model is reliable")
+        elif accuracy > 0.7:
+            print(f"      ⚠️  Moderate accuracy ({accuracy:.2%}) - Room for improvement")
         else:
-            print("   ⚠️ Model accuracy could be improved")
-            
+            print(f"      ❌ Low accuracy ({accuracy:.2%}) - Needs significant improvement")
+        
+        # Recall Analysis (Most Important for Churn)
+        print(f"\n   🎯 Churn Detection (Recall): {recall:.2%}")
         if recall > 0.7:
-            print("   ✓ Good at identifying actual churners (high recall)")
+            print(f"      ✓ Good at catching churners - Missing only {fnr*100:.1f}% of at-risk customers")
+        elif recall > 0.5:
+            print(f"      ⚠️  Missing {fnr*100:.1f}% of churners - Consider lowering prediction threshold")
         else:
-            print("   ⚠️ Missing too many actual churners (low recall)")
-            
+            print(f"      ❌ Missing {fnr*100:.1f}% of churners - Critical issue for retention strategy")
+        
+        # Precision Analysis
+        print(f"\n   🎪 Prediction Reliability (Precision): {precision:.2%}")
         if precision > 0.7:
-            print("   ✓ Predictions are reliable (high precision)")
+            print(f"      ✓ Reliable predictions - Only {fpr*100:.1f}% false alarms")
+        elif precision > 0.5:
+            print(f"      ⚠️  {fpr*100:.1f}% false alarm rate - Some wasted retention efforts")
         else:
-            print("   ⚠️ Too many false alarms (low precision)")
-            
+            print(f"      ❌ High false alarm rate ({fpr*100:.1f}%) - Too many unnecessary interventions")
+        
+        # F1-Score (Balance)
+        print(f"\n   ⚖️  Model Balance (F1-Score): {f1:.2%}")
         if f1 > 0.7:
-            print("   ✓ Well-balanced model (good F1-score)")
+            print(f"      ✓ Well-balanced between catching churners and avoiding false alarms")
+        elif f1 > 0.5:
+            print(f"      ⚠️  Moderate balance - May need to optimize threshold")
         else:
-            print("   ⚠️ Consider rebalancing precision and recall")
+            print(f"      ❌ Poor balance - Need to retrain or adjust decision threshold")
+        
+        # ROC-AUC Score
+        print(f"\n   📈 Discriminative Ability (ROC-AUC): {roc_auc:.2%}")
+        if roc_auc > 0.8:
+            print(f"      ✓ Excellent - Model can distinguish churners from non-churners")
+        elif roc_auc > 0.7:
+            print(f"      ✓ Good discrimination capability")
+        else:
+            print(f"      ⚠️  Limited discrimination - Model struggles to separate classes")
+        
+        # Business Recommendation
+        print(f"\n   💼 BUSINESS RECOMMENDATION:")
+        if recall < 0.6:
+            print(f"      🚨 PRIORITY: Improve churn detection - Currently missing ${fn * avg_ltv:,.0f} in at-risk revenue")
+        if precision < 0.6:
+            print(f"      💸 Consider: Reduce false alarms - Currently wasting retention budget on {fp} stable customers")
+        if f1 > 0.7 and roc_auc > 0.8:
+            print(f"      ✅ Model is production-ready - Deploy for retention strategy")
+        elif f1 > 0.6:
+            print(f"      ⚠️  Model is usable but monitor performance closely")
+        else:
+            print(f"      ❌ Model needs improvement before full deployment")
         
         print("\n")
         
@@ -254,13 +410,26 @@ def evaluate_recommendations_quality():
         df_original = df.copy()
         df_encoded = df.drop(columns=['customerID', 'Churn'], errors='ignore')
         
-        # Encode categorical columns
-        from sklearn.preprocessing import LabelEncoder
-        for col in df_encoded.select_dtypes(include=['object']).columns:
-            df_encoded[col] = LabelEncoder().fit_transform(df_encoded[col])
-        
+        # CRITICAL: Convert TotalCharges to numeric BEFORE encoding loop
         df_encoded['TotalCharges'] = pd.to_numeric(df_encoded['TotalCharges'], errors='coerce')
         df_encoded.fillna(0, inplace=True)
+        
+        # Load saved label encoders for consistency
+        try:
+            with open('models/label_encoders.pkl', 'rb') as f:
+                label_encoders = pickle.load(f)
+            use_saved_encoders = True
+        except FileNotFoundError:
+            label_encoders = {}
+            use_saved_encoders = False
+        
+        # Encode categorical columns using saved encoders
+        from sklearn.preprocessing import LabelEncoder
+        for col in df_encoded.select_dtypes(include=['object']).columns:
+            if use_saved_encoders and col in label_encoders:
+                df_encoded[col] = label_encoders[col].transform(df_encoded[col])
+            else:
+                df_encoded[col] = LabelEncoder().fit_transform(df_encoded[col])
         
         # Predict for all customers
         df_encoded_enhanced = add_engineered_features(df_encoded)
@@ -269,16 +438,13 @@ def evaluate_recommendations_quality():
         
         with torch.no_grad():
             outputs = model(tensor_data)
-            if input_dim > 19:
-                churn_probs = torch.sigmoid(outputs).numpy().flatten()
-            else:
-                churn_probs = outputs.numpy().flatten()
+            churn_probs = torch.sigmoid(outputs / temperature).numpy().flatten()
         
-        # Focus on high-risk customers (>50% churn probability)
-        high_risk_mask = churn_probs >= 0.5
+        # Focus on high-risk customers (>= tuned decision threshold)
+        high_risk_mask = churn_probs >= decision_threshold
         high_risk_count = high_risk_mask.sum()
         
-        print(f"✓ Found {high_risk_count} high-risk customers (≥50% churn probability)")
+        print(f"✓ Found {high_risk_count} high-risk customers (≥{decision_threshold:.0%} churn probability)")
         
         # Analyze recommendations for a sample of high-risk customers
         sample_size = min(100, high_risk_count)
@@ -508,6 +674,10 @@ def evaluate_recommendations_quality():
 
 def add_engineered_features(customer_data):
     """Add engineered features to customer data."""
+    if ENHANCED_MODEL:
+        return advanced_feature_engineering(customer_data)
+    
+    # Legacy feature engineering
     if input_dim == 19:
         return customer_data  # Old model, no engineered features
     
@@ -532,8 +702,10 @@ def extract_customer_profile(customer_data):
     row = customer_data.iloc[0]
     
     # Map encoded values back to meaningful labels
+    # LabelEncoder maps categories alphabetically. For InternetService the dataset categories
+    # are typically ['DSL', 'Fiber optic', 'No'] which map to {0:'DSL',1:'Fiber optic',2:'No'}.
     contract_types = {0: 'Month-to-month', 1: 'One year', 2: 'Two year'}
-    internet_types = {0: 'No', 1: 'DSL', 2: 'Fiber optic'}
+    internet_types = {0: 'DSL', 1: 'Fiber optic', 2: 'No'}
     
     profile = {
         'senior_citizen': bool(row['SeniorCitizen']),
@@ -639,6 +811,19 @@ def identify_risk_factors(profile, churn_prob):
 
 def generate_recommendations(profile, risk_factors, churn_prob):
     """Generate actionable retention recommendations."""
+    
+    # Try RL-based recommendations first
+    if rl_agent is not None and RL_AVAILABLE and RL_HEALTHY:
+        try:
+            rl_recommendations = get_rl_recommendations(profile, churn_prob, rl_agent, top_k=5)
+            # Add RL badge to differentiate
+            for rec in rl_recommendations:
+                rec['method'] = 'RL-Based'
+            return rl_recommendations
+        except Exception as e:
+            print(f"⚠️  RL recommendation failed: {e}, falling back to rule-based")
+    
+    # Fallback to rule-based recommendations
     recommendations = []
     
     # Critical risk - immediate action
@@ -648,7 +833,8 @@ def generate_recommendations(profile, risk_factors, churn_prob):
             'icon': '🚨',
             'action': 'Immediate Outreach Required',
             'description': 'Contact within 24 hours with exclusive retention offer',
-            'expected_impact': '65% retention success rate'
+            'expected_impact': '65% retention success rate',
+            'method': 'Rule-Based'
         })
     
     # Address specific risk factors
@@ -666,7 +852,8 @@ def generate_recommendations(profile, risk_factors, churn_prob):
                 'icon': '💰',
                 'action': f"Reduce Monthly Cost (Currently ${profile['monthly_charges']:.2f})",
                 'description': offer,
-                'expected_impact': f'Save ${savings}/month - 72% success rate'
+                'expected_impact': f'Save ${savings}/month - 72% success rate',
+                'method': 'Rule-Based'
             })
         
         if risk['factor'] == 'No Contract Commitment':
@@ -675,7 +862,8 @@ def generate_recommendations(profile, risk_factors, churn_prob):
                 'icon': '📝',
                 'action': 'Convert to Long-Term Contract',
                 'description': '24-month: $25/month off + Price Lock Guarantee',
-                'expected_impact': '58% conversion rate'
+                'expected_impact': '58% conversion rate',
+                'method': 'Rule-Based'
             })
         
         if risk['factor'] in ['Very Short Tenure', 'Short Tenure']:
@@ -684,7 +872,8 @@ def generate_recommendations(profile, risk_factors, churn_prob):
                 'icon': '🆕',
                 'action': f"New Customer Retention (Tenure: {profile['tenure_months']} mo)",
                 'description': '50% off next 3 months + Free premium channels',
-                'expected_impact': '68% retention success'
+                'expected_impact': '68% retention success',
+                'method': 'Rule-Based'
             })
         
         if risk['factor'] == 'Senior Citizen':
@@ -693,7 +882,8 @@ def generate_recommendations(profile, risk_factors, churn_prob):
                 'icon': '👴',
                 'action': 'Senior Advantage Program',
                 'description': '$15/month discount + Free tech support',
-                'expected_impact': '75% enrollment success'
+                'expected_impact': '75% enrollment success',
+                'method': 'Rule-Based'
             })
         
         if risk['factor'] in ['Low Service Engagement', 'No Value-Added Services']:
@@ -702,7 +892,8 @@ def generate_recommendations(profile, risk_factors, churn_prob):
                 'icon': '📦',
                 'action': f"Increase Service Bundle (Current: {profile['service_count']})",
                 'description': 'Free add-ons for 6 months (Security, Backup, Streaming)',
-                'expected_impact': 'Increase LTV by $500-1000'
+                'expected_impact': 'Increase LTV by $500-1000',
+                'method': 'Rule-Based'
             })
     
     # Loyalty rewards for long-term customers
@@ -713,7 +904,8 @@ def generate_recommendations(profile, risk_factors, churn_prob):
             'icon': '⭐',
             'action': f"Loyalty Rewards ({profile['tenure_months']} months tenure)",
             'description': f'${discount}/month discount + Equipment upgrade',
-            'expected_impact': '82% retention success'
+            'expected_impact': '82% retention success',
+            'method': 'Rule-Based'
         })
     
     # Remove duplicates and sort by priority
@@ -1094,9 +1286,18 @@ def display_retention_insights(customer_name, customer_data, churn_prob):
     
     # Recommendations
     print(f"\n💡 RECOMMENDED ACTIONS ({len(recommendations)}):")
+    if recommendations and 'method' in recommendations[0]:
+        rec_method = recommendations[0]['method']
+        if rec_method == 'RL-Based':
+            print(f"   🤖 Using Reinforcement Learning (AI-Optimized)")
+        else:
+            print(f"   📋 Using Rule-Based System")
+    
     for i, rec in enumerate(recommendations, 1):
-        print(f"   {i}. [Priority {rec['priority']}] {rec['icon']} {rec['action']}")
+        print(f"   {i}. [Priority {rec.get('priority', 'N/A')}] {rec['icon']} {rec['action']}")
         print(f"      {rec['description']}")
+        if 'cost' in rec:
+            print(f"      Cost: ${rec['cost']}")
         print(f"      Impact: {rec['expected_impact']}")
     
     # Primary Offer with Time Urgency
@@ -1241,14 +1442,26 @@ def analyze_single_customer():
     # Prepare data for prediction (drop customerID and Churn if exists)
     customer_data = customer.drop(columns=['customerID', 'Churn'], errors='ignore')
     
+    # CRITICAL: Convert TotalCharges to numeric BEFORE encoding loop
+    customer_data['TotalCharges'] = pd.to_numeric(customer_data['TotalCharges'], errors='coerce')
+    customer_data.fillna(0, inplace=True)
+    
+    # Load saved label encoders for consistency
+    try:
+        with open('models/label_encoders.pkl', 'rb') as f:
+            label_encoders = pickle.load(f)
+        use_saved_encoders = True
+    except FileNotFoundError:
+        label_encoders = {}
+        use_saved_encoders = False
+    
     # Encode categorical columns (same as training)
     from sklearn.preprocessing import LabelEncoder
     for col in customer_data.select_dtypes(include=['object']).columns:
-        customer_data[col] = LabelEncoder().fit_transform(customer_data[col])
-    
-    # Handle TotalCharges
-    customer_data['TotalCharges'] = pd.to_numeric(customer_data['TotalCharges'], errors='coerce')
-    customer_data.fillna(0, inplace=True)
+        if use_saved_encoders and col in label_encoders:
+            customer_data[col] = label_encoders[col].transform(customer_data[col])
+        else:
+            customer_data[col] = LabelEncoder().fit_transform(customer_data[col])
     
     # Predict
     churn_prob = predict_churn(customer_data)
@@ -1298,13 +1511,26 @@ def analyze_high_risk_customers():
     df_original = df.copy()
     df_encoded = df.drop(columns=['customerID', 'Churn'], errors='ignore')
     
+    # CRITICAL: Convert TotalCharges to numeric BEFORE encoding loop
+    df_encoded['TotalCharges'] = pd.to_numeric(df_encoded['TotalCharges'], errors='coerce')
+    df_encoded.fillna(0, inplace=True)
+    
+    # Load saved label encoders for consistency
+    try:
+        with open('models/label_encoders.pkl', 'rb') as f:
+            label_encoders = pickle.load(f)
+        use_saved_encoders = True
+    except FileNotFoundError:
+        label_encoders = {}
+        use_saved_encoders = False
+    
     # Encode categorical columns
     from sklearn.preprocessing import LabelEncoder
     for col in df_encoded.select_dtypes(include=['object']).columns:
-        df_encoded[col] = LabelEncoder().fit_transform(df_encoded[col])
-    
-    df_encoded['TotalCharges'] = pd.to_numeric(df_encoded['TotalCharges'], errors='coerce')
-    df_encoded.fillna(0, inplace=True)
+        if use_saved_encoders and col in label_encoders:
+            df_encoded[col] = label_encoders[col].transform(df_encoded[col])
+        else:
+            df_encoded[col] = LabelEncoder().fit_transform(df_encoded[col])
     
     # Predict for all customers
     df_encoded_enhanced = add_engineered_features(df_encoded)
@@ -1348,71 +1574,109 @@ def analyze_high_risk_customers():
         print(f"✅ Report saved to: {filename}")
 
 def run_demo():
-    """Run the demo with 3 test customers."""
+    """Run the demo with 3 test customers selected from the real dataset and encoded like training."""
     print("\n" + "="*70)
     print("DEMO MODE - 3 TEST CUSTOMERS")
     print("="*70)
 
-    # Example combined workflow
-    # Low-risk customer (loyal, long tenure)
-    customer_data_low = pd.DataFrame([[1, 0, 29, 1, 0, 1, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 70.0, 150.0]],
-                              columns=['gender','SeniorCitizen','Partner','Dependents','tenure','PhoneService','MultipleLines','InternetService','OnlineSecurity','OnlineBackup','DeviceProtection','TechSupport','StreamingTV','StreamingMovies','Contract','PaperlessBilling','PaymentMethod','MonthlyCharges','TotalCharges'])
+    # Load and prepare dataset
+    df = load_dataset()
+    if df is None:
+        print("\n❌ Cannot run demo without dataset.")
+        return
 
-    # Scale the customer data using the same scaler
-    customer_data_low_enhanced = add_engineered_features(customer_data_low)
-    customer_data_scaled = scaler.transform(customer_data_low_enhanced)
-    customer_tensor = torch.tensor(customer_data_scaled, dtype=torch.float32)
+    df_original = df.copy()
+    df_enc = df.drop(columns=['customerID', 'Churn'], errors='ignore')
+
+    # Fit LabelEncoders on the full dataset (same approach used elsewhere)
+    encoders = {}
+    for col in df_enc.select_dtypes(include=['object']).columns:
+        le = LabelEncoder().fit(df_enc[col])
+        df_enc[col] = le.transform(df_enc[col])
+        encoders[col] = le
+
+    # Ensure numeric conversions
+    df_enc['TotalCharges'] = pd.to_numeric(df_enc['TotalCharges'], errors='coerce')
+    df_enc.fillna(0, inplace=True)
+
+    # Precompute predictions for all customers using consistent preprocessing
+    df_enc_enh = add_engineered_features(df_enc)
+    scaled_all = scaler.transform(df_enc_enh)
+    tens_all = torch.tensor(scaled_all, dtype=torch.float32)
     with torch.no_grad():
-        output = model(customer_tensor)
-        churn_prob_low = torch.sigmoid(output).item() if input_dim > 19 else output.item()
+        out_all = model(tens_all)
+        probs_all = torch.sigmoid(out_all).numpy().flatten() if input_dim > 19 else out_all.numpy().flatten()
+
+    # Helper to package a single index
+    def predict_row(idx):
+        row_df = df_enc.iloc[[idx]].copy()
+        prob = float(probs_all[idx])
+        return prob, row_df
+
+    # Pick example customers based on original (non-encoded) features
+    # 1) Low-risk: long tenure (>=24) and multiple add-ons
+    low_mask = (
+        (df_original['tenure'] >= 24) &
+        (df_original['Contract'].isin(['One year', 'Two year'])) &
+        (df_original['MonthlyCharges'] <= df_original['MonthlyCharges'].median())
+    )
+    # Prefer an actual low-probability customer (lowest predicted prob)
+    low_idx = int(np.argmin(probs_all))
+    prob_low, row_low = predict_row(low_idx)
     print("=" * 70)
     print("CUSTOMER 1: LOW-RISK (Loyal Customer)")
     print("=" * 70)
-    print(f"Tenure: 29 months | Monthly Charges: $70 | Total Charges: $150")
-    print(f"Services: Phone, Internet, Security, Backup, Tech Support")
-    print(f"Churn probability: {churn_prob_low:.2%}")
-    print(f"Status: ✅ RETAIN - Low risk customer\n")
+    print(f"Tenure: {int(df_original.iloc[low_idx]['tenure'])} months | Monthly Charges: ${float(df_original.iloc[low_idx]['MonthlyCharges']):.0f} | Total Charges: ${float(df_original.iloc[low_idx]['TotalCharges']):.0f}")
+    print(f"Churn probability: {prob_low:.2%}")
+    print(f"Status: {'🟢 LOW RISK' if prob_low <= 0.3 else '🟡 MEDIUM/HIGH'}\n")
 
-    # High-risk customer #1 (new, high charges, minimal services)
-    customer_data_high1 = pd.DataFrame([[1, 1, 2, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 4, 105.0, 210.0]],
-                              columns=['gender','SeniorCitizen','Partner','Dependents','tenure','PhoneService','MultipleLines','InternetService','OnlineSecurity','OnlineBackup','DeviceProtection','TechSupport','StreamingTV','StreamingMovies','Contract','PaperlessBilling','PaymentMethod','MonthlyCharges','TotalCharges'])
-
-    customer_data_scaled_high1 = scaler.transform(add_engineered_features(customer_data_high1))
-    customer_tensor_high1 = torch.tensor(customer_data_scaled_high1, dtype=torch.float32)
-    with torch.no_grad():
-        output = model(customer_tensor_high1)
-        churn_prob_high1 = torch.sigmoid(output).item() if input_dim > 19 else output.item()
+    # 2) High-risk #1: senior, month-to-month, very new (<=3), high charges
+    hr1_mask = (
+        (df_original['SeniorCitizen'] == 1) &
+        (df_original['Contract'] == 'Month-to-month') &
+        (df_original['tenure'] <= 3) &
+        (df_original['MonthlyCharges'] >= df_original['MonthlyCharges'].quantile(0.75))
+    )
+    # Choose highest predicted churn probability as high-risk #1
+    hr1_idx = int(np.argmax(probs_all))
+    prob_hr1, row_hr1 = predict_row(hr1_idx)
+    risk_cat_1 = '🔴 CRITICAL RISK' if prob_hr1 > 0.7 else ('🟠 HIGH RISK' if prob_hr1 > 0.5 else ('🟡 MEDIUM RISK' if prob_hr1 > 0.3 else '🟢 LOW RISK'))
     print("=" * 70)
-    print("CUSTOMER 2: HIGH-RISK #1 (Senior Citizen - New Customer)")
+    print(f"CUSTOMER 2: {risk_cat_1} (Senior Citizen - New Customer)")
     print("=" * 70)
-    print(f"Tenure: 2 months | Monthly Charges: $105 | Total Charges: $210")
-    print(f"Services: Internet only (no phone, security, backup, tech support)")
-    print(f"Senior Citizen: Yes | High monthly charges")
-    print(f"Churn probability: {churn_prob_high1:.2%}")
-    print(f"Status: ⚠️  AT RISK - Needs intervention\n")
+    print(f"Tenure: {int(df_original.iloc[hr1_idx]['tenure'])} months | Monthly Charges: ${float(df_original.iloc[hr1_idx]['MonthlyCharges']):.0f} | Total Charges: ${float(df_original.iloc[hr1_idx]['TotalCharges']):.0f}")
+    print(f"Contract: {df_original.iloc[hr1_idx]['Contract']} | Internet: {df_original.iloc[hr1_idx]['InternetService']}")
+    print(f"Senior Citizen: {'Yes' if int(df_original.iloc[hr1_idx]['SeniorCitizen'])==1 else 'No'}")
+    print(f"Churn probability: {prob_hr1:.2%}\n")
 
-    # High-risk customer #2 (month-to-month, high charges, no extras)
-    customer_data_high2 = pd.DataFrame([[0, 0, 3, 0, 1, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 3, 95.0, 285.0]],
-                              columns=['gender','SeniorCitizen','Partner','Dependents','tenure','PhoneService','MultipleLines','InternetService','OnlineSecurity','OnlineBackup','DeviceProtection','TechSupport','StreamingTV','StreamingMovies','Contract','PaperlessBilling','PaymentMethod','MonthlyCharges','TotalCharges'])
-
-    customer_data_scaled_high2 = scaler.transform(add_engineered_features(customer_data_high2))
-    customer_tensor_high2 = torch.tensor(customer_data_scaled_high2, dtype=torch.float32)
-    with torch.no_grad():
-        output = model(customer_tensor_high2)
-        churn_prob_high2 = torch.sigmoid(output).item() if input_dim > 19 else output.item()
+    # 3) High-risk #2: month-to-month, new (<=3), internet only, no add-ons, high charges
+    no_addons_cols = ['OnlineSecurity','OnlineBackup','DeviceProtection','TechSupport','StreamingTV','StreamingMovies']
+    hr2_mask = (
+        (df_original['Contract'] == 'Month-to-month') &
+        (df_original['tenure'] <= 3) &
+        (df_original['InternetService'] != 'No') &
+        (df_original['MonthlyCharges'] >= df_original['MonthlyCharges'].quantile(0.75))
+    )
+    for c in no_addons_cols:
+        if c in df_original.columns:
+            hr2_mask &= (df_original[c] == 'No')
+    # Choose the second-highest predicted churn probability as high-risk #2
+    # Ensure distinct from hr1_idx
+    order = np.argsort(probs_all)
+    hr2_idx = int(order[-2]) if int(order[-1]) == hr1_idx else int(order[-1])
+    prob_hr2, row_hr2 = predict_row(hr2_idx)
+    risk_cat_2 = '🔴 CRITICAL RISK' if prob_hr2 > 0.7 else ('🟠 HIGH RISK' if prob_hr2 > 0.5 else ('🟡 MEDIUM RISK' if prob_hr2 > 0.3 else '🟢 LOW RISK'))
     print("=" * 70)
-    print("CUSTOMER 3: HIGH-RISK #2 (Month-to-Month Contract)")
+    print(f"CUSTOMER 3: {risk_cat_2} (Month-to-Month, No Add-ons)")
     print("=" * 70)
-    print(f"Tenure: 3 months | Monthly Charges: $95 | Total Charges: $285")
-    print(f"Services: Internet only | Month-to-month contract (no commitment)")
-    print(f"Contract Type: Month-to-Month (high flexibility to leave)")
-    print(f"Churn probability: {churn_prob_high2:.2%}")
-    print(f"Status: ⚠️  AT RISK - Easy to switch providers\n")
+    print(f"Tenure: {int(df_original.iloc[hr2_idx]['tenure'])} months | Monthly Charges: ${float(df_original.iloc[hr2_idx]['MonthlyCharges']):.0f} | Total Charges: ${float(df_original.iloc[hr2_idx]['TotalCharges']):.0f}")
+    print(f"Contract: {df_original.iloc[hr2_idx]['Contract']} | Internet: {df_original.iloc[hr2_idx]['InternetService']}")
+    print(f"Churn probability: {prob_hr2:.2%}\n")
 
-    # RETENTION INSIGHTS SYSTEM - AI-Powered Recommendations for Agents
+    # Build list for insight rendering (use encoded rows for pipeline consistency)
     high_risk_customers = [
-        {"name": "Customer 2", "data": customer_data_high1, "prob": churn_prob_high1},
-        {"name": "Customer 3", "data": customer_data_high2, "prob": churn_prob_high2}
+        {"name": "Customer 2", "data": row_hr1, "prob": prob_hr1},
+        {"name": "Customer 3", "data": row_hr2, "prob": prob_hr2}
     ]
 
     print("\n" + "=" * 70)
@@ -1458,6 +1722,72 @@ def run_demo():
 
     print("\n" + "=" * 70)
 
+def train_rl_recommendation_system():
+    """Train the Reinforcement Learning recommendation system"""
+    print("\n" + "="*70)
+    print("TRAIN REINFORCEMENT LEARNING RECOMMENDATION SYSTEM")
+    print("="*70)
+    
+    if not RL_AVAILABLE:
+        print("\n❌ RL system not available. Please check rl_recommendation_system.py")
+        return
+    
+    print("\n🤖 Initializing RL Agent Training...")
+    print("This will train a Deep Q-Network to learn optimal retention strategies")
+    print("Training uses simulated customer responses (in production, use real data)\n")
+    
+    # Ask user for training parameters
+    try:
+        episodes = input("Number of training episodes (default=1000, recommended 500-2000): ").strip()
+        episodes = int(episodes) if episodes else 1000
+    except:
+        episodes = 1000
+    
+    print(f"\n📚 Training for {episodes} episodes...")
+    print("This may take a few minutes...\n")
+    
+    # Initialize fresh agent
+    state_dim = 8
+    action_dim = len(RETENTION_ACTIONS)
+    agent = DQNAgent(state_dim, action_dim)
+    environment = RetentionEnvironment()
+    
+    # Train the agent
+    try:
+        episode_rewards, retention_rates = train_rl_agent(agent, environment, num_episodes=episodes)
+        
+        # Save the trained agent
+        model_path = 'models/rl_agent.pth'
+        agent.save(model_path)
+        
+        # Update global RL agent
+        global rl_agent
+        rl_agent = agent
+        
+        print("\n" + "="*70)
+        print("✅ RL AGENT TRAINING COMPLETE")
+        print("="*70)
+        print(f"\n📊 Training Summary:")
+        print(f"   Final Retention Rate: {np.mean(retention_rates[-100:]):.2%}")
+        print(f"   Final Average Reward: {np.mean(episode_rewards[-100:]):.2f}")
+        print(f"   Model saved to: {model_path}")
+        print(f"\n💡 The system will now use RL-based recommendations automatically!")
+        
+    except Exception as e:
+        print(f"\n❌ Training failed: {str(e)}")
+        import traceback
+        traceback.print_exc()
+
+def enhanced_metrics_evaluation():
+    """Run enhanced recommendation evaluation with conversion tracking and relevance scoring"""
+    try:
+        from enhanced_recommendation_metrics import evaluate_with_enhanced_metrics
+        evaluate_with_enhanced_metrics()
+    except Exception as e:
+        print(f"\n❌ Error running enhanced metrics: {str(e)}")
+        import traceback
+        traceback.print_exc()
+
 def main_menu():
     """Interactive main menu for the retention system."""
     while True:
@@ -1467,28 +1797,34 @@ def main_menu():
         print("\n📋 MAIN MENU:")
         print("   1. 📊 Churn Prediction Model - Evaluation Metrics")
         print("   2. 🎯 Evaluate Recommendation System Quality")
-        print("   3. 🔍 Analyze Single Customer (by ID)")
-        print("   4. 📈 Generate High-Risk Customer Report")
-        print("   5. 🎬 Run Demo (3 Test Customers)")
-        print("   6. 🚪 Exit")
+        print("   3. � Enhanced Metrics (Conversion + Relevance) ⭐ NEW")
+        print("   4. �🔍 Analyze Single Customer (by ID)")
+        print("   5. 📈 Generate High-Risk Customer Report")
+        print("   6. 🎬 Run Demo (3 Test Customers)")
+        print("   7. 🤖 Train RL Recommendation System (Advanced)")
+        print("   8. 🚪 Exit")
         
-        choice = input("\nSelect an option (1-6): ").strip()
+        choice = input("\nSelect an option (1-8): ").strip()
         
         if choice == '1':
             evaluate_model_performance()
         elif choice == '2':
             evaluate_recommendations_quality()
         elif choice == '3':
-            analyze_single_customer()
+            enhanced_metrics_evaluation()
         elif choice == '4':
-            analyze_high_risk_customers()
+            analyze_single_customer()
         elif choice == '5':
-            run_demo()
+            analyze_high_risk_customers()
         elif choice == '6':
+            run_demo()
+        elif choice == '7':
+            train_rl_recommendation_system()
+        elif choice == '8':
             print("\n✅ Thank you for using the Retention System. Goodbye!")
             break
         else:
-            print("\n❌ Invalid choice. Please select 1-6.")
+            print("\n❌ Invalid choice. Please select 1-8.")
 
 # Check if running in interactive mode or demo mode
 if __name__ == "__main__":
