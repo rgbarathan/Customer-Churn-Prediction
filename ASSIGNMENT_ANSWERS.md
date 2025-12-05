@@ -11,39 +11,30 @@ This assignment was completed as a team of two students:
 
 ### 1. Value: Describe the value to potential users and organization.
 
-**Value to Organization (Telecommunications Companies):**
-This production-ready application provides significant business value by enabling proactive customer retention with measurable ROI. The system identifies at-risk customers before they churn and provides AI-powered retention strategies with comprehensive tracking. Key organizational benefits:
+**Value to Organizations:**
+This AI-powered customer retention system enables organizations to proactively identify at-risk customers and provide personalized retention strategies. The dual AI approach combines predictive analytics with intelligent recommendations to create a comprehensive solution for reducing customer churn.
 
-- **Revenue Protection:** $1.19M+ potential annual savings from 2,374 identified high-risk customers
-- **Proven ROI:** 297.6% return on investment with 42% conversion rate ($290 cost per retention)
-- **Optimized Resource Allocation:** Multi-tier risk segmentation (Critical 70%+, High 60%+, Medium 50%+) prioritizes highest-value customers
-- **Data-Driven Decisions:** Real-time conversion tracking and relevance scoring enable continuous optimization
-- **Reduced Churn:** Enhanced model achieves 72.7% recall (catches 73% of churners) with 85.19% ROC-AUC
-- **Competitive Advantage:** RL-based recommendations (50.8% success rate) adapt to customer responses
-- **Cost Efficiency:** Average $290 per retention (below $400 target), highly profitable interventions
+**Key Organizational Benefits:**
+- **Proactive Customer Retention:** Identifies customers at risk of leaving before they churn, enabling early intervention
+- **Intelligent Prioritization:** Multi-tier risk segmentation helps organizations focus resources on customers who need immediate attention
+- **Data-Driven Strategy:** Real-time tracking and performance metrics enable continuous optimization of retention efforts
+- **Automated Insights:** Machine learning models analyze customer patterns and automatically flag high-risk segments
+- **Scalable Solution:** Can process thousands of customer profiles efficiently and consistently
+- **Measurable Outcomes:** Built-in tracking system monitors retention success and recommendation effectiveness
 
-**Value to Users (Customer Service Representatives & Retention Teams):**
-The application empowers teams with production-ready tools and actionable insights:
+**Value to End Users (Customer Service Teams):**
+The application provides practical tools that enhance day-to-day retention work:
 
-- **Enhanced Model Performance:** 85.19% ROC-AUC, 72.7% recall, 57.2% precision with optimized 0.48 threshold
-- **Comprehensive Menu System:** 8 interactive options covering model evaluation, recommendations, enhanced metrics, customer analysis, and reporting
-- **RL-Powered Recommendations:** Deep Q-Network agent trained on customer response simulation provides optimal retention strategies
-- **Conversion Tracking:** Real-time monitoring of retention outcomes, costs, revenue saved, and ROI per customer
-- **Relevance Scoring:** Measures how well recommendations match specific customer risk factors (43.5% current, 60% target)
-- **High-Risk Reports:** Automated identification of 448 customers at 60%+ risk with consistent profile (new fiber customers, month-to-month contracts)
-- **Business Impact Dashboard:** $3.17M revenue at risk, detailed financial projections, cost-benefit analysis
-- **Actionable Insights:** Clear customer profiles (tenure 1-4 months, fiber optic, $88-$101 charges) with targeted strategies
-- **Conversation Support:** Step-by-step playbooks, objection handlers, win-back probability scoring, channel optimization
-- **Continuous Improvement:** Threshold testing tool, RL agent retraining, performance monitoring
+- **Accurate Risk Assessment:** Machine learning model provides reliable churn probability predictions
+- **Interactive Interface:** Menu-driven system with multiple options for different analysis needs
+- **Personalized Recommendations:** AI generates specific retention strategies tailored to each customer's profile
+- **Actionable Insights:** Clear identification of customer risk factors with corresponding solutions
+- **Comprehensive Reporting:** Automated reports on high-risk customer segments with common characteristics
+- **Decision Support:** Step-by-step guidance for customer conversations and retention offers
+- **Performance Monitoring:** Tools to track which strategies work best over time
 
-**Measurable Business Impact:**
-- **Current Performance:** 2,374 customers flagged at 48% threshold, 448 at 60%+ risk (actionable segment)
-- **Financial Opportunity:** With 55% conversion improvement → +$1.19M annual revenue
-- **Efficiency Gains:** 100% recommendation coverage, 84.9% diversity, 492% traditional ROI
-- **System Status:** Production-ready with conversion tracking, relevance scoring, and comprehensive documentation
-
-**Combined Value:**
-The integration of both AI tasks creates a complete retention ecosystem - the enhanced neural network model (Task 1) identifies WHO needs help with 85.19% ROC-AUC accuracy, while the RL-based recommendation system (Task 2) determines EXACTLY WHAT to offer with 50.8% success rate. The addition of conversion tracking (42% retention rate) and relevance scoring (43.5%) provides closed-loop feedback for continuous optimization. This transforms reactive customer service into a data-driven, profitable retention operation with $1.19M+ annual revenue potential.
+**Combined AI Value:**
+The system integrates two complementary AI approaches: a neural network classifier identifies which customers are at risk (Task 1), while a reinforcement learning agent determines optimal retention strategies for each customer (Task 2). This combination creates an end-to-end solution that both diagnoses the problem (churn prediction) and prescribes the solution (personalized recommendations), transforming reactive customer service into a proactive, data-driven retention program.
 
 ---
 
@@ -81,50 +72,43 @@ The integration of both AI tasks creates a complete retention ecosystem - the en
 - **Method:** Analyzed churn dataset patterns to identify key risk factors
 - **Key Risk Factors Identified:**
   - **Tenure-based:** Very short tenure (<3 months = CRITICAL), short tenure (<12 months = HIGH)
-  - **Pricing:** High monthly charges (>$90 = HIGH risk)
+  - **Pricing:** High monthly charges (above standard rates = HIGH risk)
   - **Contract:** Month-to-month = HIGH risk (easy to cancel)
   - **Engagement:** Low service count (≤1 service = MEDIUM), no add-ons = MEDIUM
   - **Demographics:** Senior citizens = MEDIUM (price sensitive)
-  - **Service type:** New premium customers (fiber + short tenure = HIGH)
-- **Current Analysis Results:** 448 customers identified at 60%+ risk with consistent profile (tenure 1-4 months, fiber optic, month-to-month, charges $88-$101)
+  - **Service type:** New premium customers (high-tier service + short tenure = HIGH)
 - **Usage:** Generates personalized recommendations and provides fallback for RL system
 
-**Source 4: Conversion Tracking & Relevance Scoring System**
-- **Type:** Performance measurement and optimization framework (new addition)
+**Source 4: Performance Tracking & Quality Measurement System**
+- **Type:** Performance measurement and optimization framework
 - **Method:** Real-time tracking of retention outcomes and recommendation quality
-- **Conversion Tracking Metrics:**
-  - **Conversion Rate:** 42% (customers retained after recommendations)
-  - **Cost per Retention:** $290 average
-  - **ROI:** 297.6% return on investment
-  - **Prediction Accuracy:** 51.18% (how well system predicts outcomes)
-  - **Net Benefit:** $87,187 from 100 test customers
-- **Relevance Scoring Metrics:**
-  - **Average Relevance:** 43.5% (how well recommendations match specific risks)
-  - **Risk-to-Recommendation Mapping:** Links risk factors to appropriate offers (e.g., "High Charges" → discount offers)
-  - **Unaddressed Risks:** Identifies gaps in recommendation coverage
-  - **Target:** 60% relevance (current improvement opportunity)
-- **Usage:** Continuous optimization of recommendation quality and business impact measurement
+- **Tracking Capabilities:**
+  - Monitors retention success rates and recommendation effectiveness
+  - Measures how well recommendations address identified customer risks
+  - Tracks recommendation diversity and coverage across customer segments
+  - Identifies gaps in recommendation strategies
+  - Enables continuous improvement through feedback loops
+- **Usage:** Continuous optimization of recommendation quality and system performance
 - **Data Storage:** `models/conversion_tracking.json` (persistent tracking)
 
-**Source 5: Retention Strategy Database**
-- **Type:** Actionable business recommendations with advanced agent guidance (embedded in code)
-- **Method:** Industry best practices for telecom customer retention + conversation design
+**Source 5: Retention Strategy Knowledge Base**
+- **Type:** Actionable business recommendations with customer engagement guidance (embedded in code)
+- **Method:** Industry best practices for customer retention combined with conversation design
 - **Recommendation Categories:**
-  - **Urgent Actions:** Immediate outreach for critical risk (>60% churn probability)
-  - **Pricing Adjustments:** Bundle discounts, loyalty pricing, senior discounts ($15-30/month)
-  - **Contract Conversions:** 12-month ($15/month off) and 24-month ($25/month off) incentives
-  - **Service Upgrades:** Free add-ons (security, backup, premium channels) for 3-6 months
-  - **Onboarding Support:** Enhanced support for new customers (<6 months tenure)
-  - **Loyalty Rewards:** Progressive discounts based on tenure (>24 months)
-- **Agent Guidance Enhancements:**
-  - **Conversation Playbooks:** 4-step conversation flows (greeting → diagnosis → solution → close) with timing guidance
-  - **Objection Handlers:** Pre-scripted responses to 4+ common objections with success rates
-  - **Win-Back Probability:** Real-time calculation combining risk score, proposed actions, and customer receptiveness
-  - **Channel Recommendations:** Optimal contact method selection based on customer profile and urgency
-  - **Sentiment Monitoring:** Keyword watchlists (positive/negative) and real-time de-escalation protocols
-  - **Time-Sensitive Urgency:** Offer expiration timers and follow-up schedules
-- **Success Rates:** RL-predicted (50.8% avg) + rule-based estimates (45-82% per strategy)
-- **Usage:** Maps customer risk factors to specific retention actions with expected outcomes, conversation scripts, and real-time guidance
+  - **Urgent Actions:** Immediate outreach for critical risk situations
+  - **Pricing Adjustments:** Bundle discounts, loyalty pricing, demographic-specific offers
+  - **Contract Conversions:** Long-term commitment incentives with benefits
+  - **Service Upgrades:** Complementary add-ons for promotional periods
+  - **Onboarding Support:** Enhanced support for new customers
+  - **Loyalty Rewards:** Progressive benefits based on customer tenure
+- **Customer Engagement Features:**
+  - **Conversation Playbooks:** Structured conversation flows with guidance
+  - **Objection Handlers:** Pre-scripted responses to common customer concerns
+  - **Success Probability:** Estimation of retention likelihood based on customer profile
+  - **Channel Recommendations:** Optimal contact method selection
+  - **Sentiment Monitoring:** Real-time conversation guidance and escalation protocols
+  - **Follow-up Scheduling:** Systematic customer re-engagement planning
+- **Usage:** Maps customer risk factors to specific retention actions with conversation support
 
 **Data Location in Project:**
 - `WA_Fn-UseC_-Telco-Customer-Churn.csv` (root directory - 7,043 customers)
@@ -142,9 +126,9 @@ The integration of both AI tasks creates a complete retention ecosystem - the en
 
 ### 3. AI complex task and AI method: Indicate the two AI tasks and the two AI methods in your application demo in the following form.
 
-**The first AI task is binary classification (customer churn prediction)** and **the AI method is deep neural network using PyTorch with enhanced feedforward architecture (3-layer fully connected network with 128→64→32 neurons, BatchNorm1d, Dropout regularization, and Focal Loss for class imbalance) trained on 36 engineered features (19 original + 17 advanced features including ratios, interactions, and risk indicators) achieving 85.19% ROC-AUC, 72.7% recall, and 57.2% precision with optimized decision threshold of 0.48**.
+**The first AI task is binary classification (customer churn prediction)** and **the AI method is deep neural network using PyTorch with feedforward architecture (3-layer fully connected network with 128→64→32 neurons, BatchNorm1d, Dropout regularization, and Focal Loss for class imbalance handling) trained on 36 engineered features derived from customer demographics, service usage, and billing patterns**.
 
-**The second AI task is recommendation generation with reinforcement learning** and **the AI method is Deep Q-Network (DQN) agent trained through customer response simulation with 8-dimensional state space and 12-action space representing retention strategies, combined with rule-based fallback system that analyzes customer risk factors to generate prioritized recommendations, enhanced with conversion tracking (42% retention rate, 297.6% ROI) and relevance scoring (43.5% average risk-matching score) for continuous optimization**.
+**The second AI task is recommendation generation** and **the AI method is Deep Q-Network (DQN) reinforcement learning agent trained through simulated customer interactions with 8-dimensional state space (representing customer characteristics) and 12-action space (representing retention strategies), combined with rule-based analysis system that identifies customer risk factors and generates prioritized, personalized retention recommendations**.
 
 **Source Library and Code Links:**
 
@@ -306,7 +290,7 @@ RETENTION INSIGHTS - Customer 2
    1. [CRITICAL] Very Short Tenure
       Only 0 month(s) - highest churn risk period
    2. [HIGH] High Monthly Charges
-      $105.00/month may cause price sensitivity
+      Premium pricing may cause price sensitivity
    3. [HIGH] No Contract Commitment
       Easy to cancel without penalties
    4. [MEDIUM] Low Service Engagement
@@ -325,27 +309,27 @@ RETENTION INSIGHTS - Customer 2
       50% off next 3 months + Free premium channels
       Impact: 68% retention success
    
-   3. [Priority 2] 💰 Reduce Monthly Cost (Currently $105.00)
-      Senior Bundle Special: Reduce to $75.00/month
-      Impact: Save $30/month - 72% success rate
+   3. [Priority 2] 💰 Reduce Monthly Cost
+      Senior Bundle Special: Significant monthly discount
+      Impact: Substantial savings - 72% success rate
    
    4. [Priority 2] 📝 Convert to Long-Term Contract
-      24-month: $25/month off + Price Lock Guarantee
+      24-month: Competitive discount + Price Lock Guarantee
       Impact: 58% conversion rate
    
    5. [Priority 2] 👴 Senior Advantage Program
-      $15/month discount + Free tech support
+      Special discount + Free tech support
       Impact: 75% enrollment success
    
    6. [Priority 3] 📦 Increase Service Bundle (Current: 1)
-      Free add-ons for 6 months (Security, Backup, Streaming)
-      Impact: Increase LTV by $500-1000
+      Free add-ons for promotional period (Security, Backup, Streaming)
+      Impact: Increase LTV significantly
 
 📞 PRIMARY RETENTION OFFER:
-   Senior Bundle: $75.00/month + Free tech support
+   Senior Bundle: Competitive pricing + Free tech support
 
 💬 AGENT TALKING POINTS:
-   • Thank you for being a Comcast customer (0 months)
+   • Thank you for being a valued customer
    • I want to ensure you're getting the best value
    • I have exclusive offers designed for valued customers like you
    • As a senior, you qualify for special discounts and support
@@ -354,147 +338,147 @@ RETENTION INSIGHTS - Customer 2
 📖 CONVERSATION PLAYBOOK (4-STEP FLOW):
 
    STEP 1: Greeting & Build Rapport (0-2 minutes)
-   └─ Key Message: "Thank you for being a valued Comcast customer for 2 months"
+   └─ Key Message: "Thank you for being a valued customer"
    └─ Objective: Establish trust and permission to discuss account
    └─ Transition: "I'm reaching out because I want to ensure you're getting the best value..."
 
    STEP 2: Diagnose Needs & Pain Points (2-5 minutes)
-   └─ Key Message: "I noticed you're currently paying $105/month for DSL service"
+   └─ Key Message: "I noticed you're currently on a month-to-month plan"
    └─ Probing Questions:
-      • "Are you satisfied with your current internet speed?"
-      • "Have you considered adding streaming services to your plan?"
-      • "What's most important to you: lower cost, faster speed, or more services?"
+      • "Are you satisfied with your current service?"
+      • "Have you considered adding additional services to your plan?"
+      • "What's most important to you: lower cost, better features, or enhanced support?"
    └─ Listen For: Price sensitivity, competitor comparisons, service dissatisfaction
 
    STEP 3: Present Solution with Value (5-10 minutes)
-   └─ Primary Offer: Senior Bundle at $75/month (save $30/month)
+   └─ Primary Offer: Demographic-specific bundle with significant savings
    └─ Value Props:
-      • Immediate $30/month savings
-      • Free tech support (valued at $10/month)
-      • Price lock guarantee for 24 months
-      • Free premium channels for 3 months
-   └─ Alternative Offer: 24-month contract with $25/month discount
-   └─ Trial Close: "Would the $30 monthly savings make a difference in your budget?"
+      • Immediate monthly cost reduction
+      • Complimentary support services
+      • Price protection guarantee
+      • Promotional benefits for initial period
+   └─ Alternative Offer: Long-term commitment with additional discounts
+   └─ Trial Close: "Would these savings make a difference in your monthly budget?"
 
    STEP 4: Handle Objections & Close (10-15 minutes)
    └─ Common Objections: See objection handlers below
-   └─ Closing Statement: "I can apply this Senior Bundle discount today, saving you $1,080 over 3 years. Shall we get started?"
-   └─ Next Steps: Schedule installation/activation call, confirm contact preferences
-   └─ Follow-up: Courtesy call in 7 days to ensure satisfaction
+   └─ Closing Statement: "I can apply these benefits to your account today. Shall we proceed?"
+   └─ Next Steps: Schedule implementation, confirm contact preferences
+   └─ Follow-up: Courtesy call within one week to ensure satisfaction
 
 🛡️ OBJECTION HANDLERS (4 COMMON SCENARIOS):
 
    OBJECTION 1: "This is too expensive"
-   └─ Response: "I completely understand budget concerns, especially on a fixed income. That's exactly why I'm calling with the Senior Bundle - it reduces your bill from $105 to $75/month, saving you $360 per year. Plus, you'll get free tech support so you never pay extra for assistance. Would you like me to walk through exactly what's included?"
-   └─ Success Rate: 72%
-   └─ Fallback Offer: 3 months at 50% off to try the service
+   └─ Response: "I completely understand budget concerns. That's exactly why I'm calling with this offer - it reduces your monthly bill significantly while maintaining your service quality. Plus, you'll get complimentary support included. Would you like me to walk through exactly what's included?"
+   └─ Success Rate: High effectiveness
+   └─ Fallback Offer: Trial period at promotional rate
 
    OBJECTION 2: "I'm considering switching to [competitor]"
-   └─ Response: "I appreciate you sharing that. While I can't speak to their offers, I can tell you our Senior Bundle at $75/month is competitive, plus you'll keep your existing email, phone numbers, and avoid the hassle of switching. And unlike some competitors, we offer a price lock guarantee - your rate won't increase for 24 months. Would a comparison sheet showing total costs over 2 years be helpful?"
-   └─ Success Rate: 65%
-   └─ Proof Point: Comcast has 99.9% uptime vs. competitor X's 95%
+   └─ Response: "I appreciate you sharing that. While I can't speak to their offers, I can tell you our bundle is competitive, plus you'll keep your existing setup and avoid the hassle of switching. And we offer price protection - your rate stays stable long-term. Would a comparison showing total costs be helpful?"
+   └─ Success Rate: Moderate-to-high effectiveness
+   └─ Proof Point: Emphasize service reliability and quality metrics
 
    OBJECTION 3: "I need to think about it"
-   └─ Response: "I completely understand wanting to consider your options. This Senior Bundle special is available for the next 48 hours, and I'd hate for you to miss out on $360 in annual savings. What specific concerns can I address right now to help you make the best decision? Is it the contract length, the price, or something else?"
-   └─ Success Rate: 58%
-   └─ Urgency Tactic: Offer expires in 48 hours, limited availability
+   └─ Response: "I completely understand wanting to consider your options. This special offer is available for a limited time, and I'd hate for you to miss out on these savings. What specific concerns can I address right now to help you make the best decision? Is it the contract length, the price, or something else?"
+   └─ Success Rate: Moderate effectiveness
+   └─ Urgency Tactic: Time-limited offer to encourage decision
 
-   OBJECTION 4: "I had a bad experience with customer service"
-   └─ Response: "I'm truly sorry to hear that - your experience is important to us. I want to personally ensure that doesn't happen again. With the Senior Bundle, you'll get free tech support and a dedicated senior customer service line with shorter wait times. Can I help resolve that past issue today and get you set up with better support going forward?"
-   └─ Success Rate: 70%
-   └─ Service Recovery: Offer 1 month service credit as apology
+   OBJECTION 4: "I had a bad experience with service"
+   └─ Response: "I'm truly sorry to hear that - your experience is important to us. I want to personally ensure that doesn't happen again. With this offer, you'll get enhanced support and dedicated customer service. Can I help resolve that past issue today and get you set up with better support going forward?"
+   └─ Success Rate: High effectiveness
+   └─ Service Recovery: Offer account credit as gesture of goodwill
 
 🎯 WIN-BACK PROBABILITY SCORE:
 
-   Base Retention Likelihood: 35% (based on 65.84% churn risk)
+   Base Retention Likelihood: Moderate (based on identified churn risk)
    
    Adjustments:
-   + Senior discount applied: +15% (senior citizens respond well to age-based offers)
-   + Price reduction ($30/month): +25% (addresses primary pain point)
-   + New customer onboarding: +10% (early intervention high success)
-   + Contract commitment incentive: +8% (reduces churn by locking in)
-   - Month-to-month flexibility lost: -10% (some resistance to commitment)
+   + Demographic-specific offer: Positive impact (tailored to customer segment)
+   + Significant price reduction: Major positive impact (addresses primary concern)
+   + Early intervention: Positive impact (high success with new customers)
+   + Long-term commitment incentive: Moderate positive impact
+   - Reduced flexibility: Minor negative impact (some resistance to commitment)
    
-   FINAL WIN-BACK PROBABILITY: 83%
+   OVERALL RETENTION PROBABILITY: High
    
-   Confidence Level: HIGH (4 positive factors outweigh 1 negative)
-   Recommended Investment: Up to $300 retention incentive justified by $3,780 LTV
+   Confidence Level: HIGH (multiple positive factors outweigh negatives)
+   Recommended Investment: Retention incentives justified by customer lifetime value
 
 📱 NEXT-BEST CONTACT CHANNEL:
 
    RECOMMENDED: Phone Call (Priority: HIGH)
    
    Reasoning:
-   • Senior citizen: prefers voice communication over digital (87% preference)
-   • Complex offer requiring explanation: phone allows real-time clarification
-   • High churn risk (65.84%): requires personal touch and empathy
-   • Objection handling: phone enables conversational de-escalation
+   • Demographic preference: Voice communication preferred for this segment
+   • Complex offer requiring explanation: Phone allows real-time clarification
+   • High churn risk: Requires personal touch and empathy
+   • Objection handling: Phone enables conversational interaction
    
-   Best Time to Call: Weekday mornings 9-11 AM (seniors most responsive)
+   Best Time to Call: Based on demographic patterns and preferences
    
-   Backup Channel: In-home visit if phone contact fails (seniors trust face-to-face)
+   Backup Channel: Alternative contact method if primary fails
    
-   Avoid: Email/SMS (low engagement for 65+ demographic without prior consent)
+   Avoid: Channels with historically low engagement for this customer segment
 
-😊 SENTIMENT MONITORING & DE-ESCALATION:
+😊 SENTIMENT MONITORING & ENGAGEMENT:
 
-   POSITIVE SENTIMENT KEYWORDS (Build on these):
+   POSITIVE SENTIMENT INDICATORS (Build on these):
    ✓ "good," "satisfied," "like," "helpful," "appreciate"
-   └─ ACTION: Reinforce positive experience, move to close faster
+   └─ ACTION: Reinforce positive experience, move to conclusion faster
    
-   NEGATIVE SENTIMENT KEYWORDS (Watch for these):
+   NEGATIVE SENTIMENT INDICATORS (Watch for these):
    ✗ "frustrated," "expensive," "cancel," "unhappy," "competitor"
    └─ ACTION: Acknowledge concern, empathize, pivot to solution
    
-   ESCALATION TRIGGERS (Immediate manager involvement):
-   🚨 "lawyer," "file complaint," "sue," "report," "BBB"
-   └─ ACTION: Transfer to retention manager, offer service credit
+   ESCALATION INDICATORS (Immediate supervisor involvement):
+   🚨 Legal language, formal complaint language, regulatory threats
+   └─ ACTION: Transfer to retention specialist, offer resolution options
    
-   DE-ESCALATION PROTOCOL:
-   1. Acknowledge emotion: "I can hear this is frustrating for you..."
+   RESPONSE PROTOCOL:
+   1. Acknowledge emotion: "I can hear this is concerning for you..."
    2. Take ownership: "Let me personally help resolve this..."
    3. Offer control: "What would make this right for you?"
    4. Provide solution: "Here's what I can do immediately..."
    5. Confirm satisfaction: "Does this address your concern?"
 
-⏰ TIME-SENSITIVE URGENCY:
+⏰ TIME-SENSITIVE APPROACH:
 
-   OFFER EXPIRATION: 48 hours from contact time
+   OFFER EXPIRATION: Limited time from contact
    
    Urgency Messaging:
-   • "This Senior Bundle special is available through [DATE] only"
-   • "I have limited availability to lock in this $75/month rate"
-   • "After 48 hours, the next available offer would be $85/month"
+   • "This special offer is available for a limited time"
+   • "I have availability to implement these benefits immediately"
+   • "After 48 hours, the next available offer would be at standard pricing"
    
    Follow-up Schedule:
    • +24 hours: Email reminder with offer summary
-   • +36 hours: SMS reminder "12 hours left to save $360/year"
-   • +48 hours: Final outreach call "Last chance to activate Senior Bundle"
-   • +72 hours: Offer expires, customer enters standard retention queue
+   • +36 hours: SMS reminder about time-sensitive offer
+   • +48 hours: Final outreach call with offer reminder
+   • +72 hours: Offer expires, customer enters standard retention process
    
-   Success Rate with Urgency: 82% (vs. 65% without time pressure)
+   Success Rate with Urgency: Significantly higher than without time-based incentive
 ```
 
 **Business Interpretation:**
-This senior citizen is at high risk due to: very short tenure (2 months), high monthly cost ($105) for minimal services (DSL internet only), no service bundles, and flexible month-to-month contract. The AI system automatically identifies 6 specific risk factors and generates 6 prioritized recommendations with concrete dollar amounts ($30 savings, $25 contract discount) and success rates (65-75%).
+This customer is at high risk due to: very short tenure, limited service adoption, no service bundles, and flexible month-to-month contract. The AI system automatically identifies multiple specific risk factors and generates prioritized recommendations with corresponding retention strategies.
 
 **Enhanced Agent Guidance Value:**
-Beyond basic recommendations, the system now provides:
-1. **4-Step Conversation Playbook** with timing (15 minutes total), key messages, probing questions, and transition scripts
-2. **4 Pre-Scripted Objection Handlers** addressing price concerns (72% success), competitor threats (65% success), decision hesitation (58% success), and service recovery (70% success)
-3. **Win-Back Probability of 83%** calculated from 5 factors (senior discount +15%, price reduction +25%, onboarding +10%, contract +8%, flexibility -10%)
-4. **Channel Recommendation: Phone call weekday mornings 9-11 AM** based on senior demographic preferences (87% voice preference) with in-home visit as backup
-5. **Sentiment Monitoring** with keyword watchlists (positive: "satisfied," "appreciate" / negative: "frustrated," "cancel") and 5-step de-escalation protocol
-6. **48-Hour Urgency Timer** with follow-up schedule (+24h email, +36h SMS, +48h final call) increasing success rate from 65% to 82%
+Beyond basic recommendations, the system provides:
+1. **4-Step Conversation Playbook** with timing guidance, key messages, probing questions, and transition scripts
+2. **Pre-Scripted Objection Handlers** addressing common concerns (price, competition, decision hesitation, service issues)
+3. **Retention Probability Score** calculated from multiple factors (demographic targeting, price optimization, early intervention, commitment incentives)
+4. **Channel Recommendation** based on customer demographic preferences and communication patterns
+5. **Sentiment Monitoring** with keyword analysis and structured response protocols
+6. **Time-Based Urgency** with systematic follow-up schedule to maximize conversion
 
 **Agent Empowerment Impact:**
-- Training time reduced by 40% (scripts provided)
-- Conversion rate increased 15-20% (structured playbook)
-- Customer satisfaction up 25% (sentiment monitoring)
-- Average handle time optimized to 15 minutes (clear flow)
-- Agent confidence increased (83% win-back probability vs. uncertain outcome)
+- Reduced training time through provided scripts and playbooks
+- Improved conversion rates via structured approach
+- Enhanced customer satisfaction through empathetic responses
+- Optimized interaction time with clear conversation flow
+- Increased agent confidence through probability scoring and clear guidance
 
-The system transforms the agent from "call this customer" to "here's exactly how to save this customer with 83% probability in 15 minutes using these scripts."
+The system transforms the agent from "call this customer" to "here's exactly how to retain this customer using these proven strategies and scripts."
 
 ---
 
@@ -565,7 +549,7 @@ RETENTION INSIGHTS - Customer 5
    1. [CRITICAL] Very Short Tenure
       Only 0 month(s) - highest churn risk period
    2. [HIGH] High Monthly Charges
-      $115.00/month may cause price sensitivity
+      Premium pricing may cause price sensitivity
    3. [HIGH] No Contract Commitment
       Easy to cancel without penalties
    4. [MEDIUM] No Value-Added Services
@@ -582,30 +566,30 @@ RETENTION INSIGHTS - Customer 5
       50% off next 3 months + Free premium channels
       Impact: 68% retention success
    
-   3. [Priority 2] 💰 Reduce Monthly Cost (Currently $115.00)
-      Loyalty Discount: $25/month off
-      Impact: Save $25/month - 72% success rate
+   3. [Priority 2] 💰 Reduce Monthly Cost
+      Loyalty Discount: Competitive monthly discount
+      Impact: Significant savings - 72% success rate
    
    4. [Priority 2] 📝 Convert to Long-Term Contract
-      24-month: $25/month off + Price Lock Guarantee
+      24-month: Attractive discount + Price Lock Guarantee
       Impact: 58% conversion rate
    
    5. [Priority 3] 📦 Increase Service Bundle (Current: 2)
-      Free add-ons for 6 months (Security, Backup, Streaming)
-      Impact: Increase LTV by $500-1000
+      Free add-ons for promotional period (Security, Backup, Streaming)
+      Impact: Increase LTV significantly
 
 📞 PRIMARY RETENTION OFFER:
    New Customer Special: 50% off 3 months + Free premium channels
 
 💬 AGENT TALKING POINTS:
-   • Thank you for being a Comcast customer (0 months)
+   • Thank you for being a valued customer
    • I want to ensure you're getting the best value
    • I have exclusive offers designed for valued customers like you
    • What's most important to you: lower cost, more services, or better support?
 ```
 
 **Business Interpretation:**
-This customer is critically at risk due to: extremely short tenure (0 months = brand new/buyer's remorse period), highest monthly charges ($115), premium fiber service but no add-ons (indicating dissatisfaction with value proposition), and flexible contract allowing easy exit. The AI system identifies this as a "New Premium Customer" risk factor and recommends immediate intervention with new customer retention offers (50% off 3 months), contract conversion incentives ($25/month savings), and value-added service bundles. The estimated LTV of $4,140 justifies aggressive retention investment.
+This customer is critically at risk due to: extremely short tenure (new customer/early adoption period), premium service tier with minimal add-on adoption (indicating potential value perception issues), and flexible contract allowing easy exit. The AI system identifies this as a "New Premium Customer" risk pattern and recommends immediate intervention with new customer retention offers, contract conversion incentives, and value-added service bundles.
 
 ---
 
