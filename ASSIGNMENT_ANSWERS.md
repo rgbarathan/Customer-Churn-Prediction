@@ -25,7 +25,9 @@ This application addresses the critical business challenge of customer churn thr
 
 4. **Personalized Retention Strategies:** Instead of generic retention offers, the system generates customized recommendations based on each customer's specific risk profile. For example, senior citizens receive different recommendations than new premium service customers.
 
-5. **Performance Measurement:** Built-in metrics track both prediction accuracy and recommendation effectiveness, enabling continuous improvement of the retention strategy.
+5. **Measurable Revenue Protection:** By identifying and retaining at-risk customers, the system directly impacts organizational revenue. The AI-driven approach enables organizations to reduce customer attrition rates, protect recurring revenue streams, and improve customer lifetime value, resulting in quantifiable financial benefits through decreased churn costs and increased retention rates.
+
+6. **Performance Measurement:** Built-in metrics track both prediction accuracy and recommendation effectiveness, enabling continuous improvement of the retention strategy.
 
 **Value to End Users (Customer Service Representatives and Retention Teams):**
 
